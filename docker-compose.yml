@@ -1,0 +1,35 @@
+version: "3.9"
+services:
+  nameless_note_db:
+    image: mongo:6
+    container_name: nameless_note_db
+    restart: unless-stopped
+    ports:
+      - "27018:27017"   # host:container  ← ¡esta es la forma correcta!
+    volumes:
+      - mongo_data:/data/db
+
+  nameless_note_backend:
+    build: ./backend
+    container_name: nameless_note_backend
+    depends_on:
+      - nameless_note_db
+    env_file:
+      - ./backend/.env
+    environment:
+      - MONGO_URI=mongodb://nameless_note_db:27017/namelessnote
+      - CORS_ORIGIN=http://localhost:3000
+    ports:
+      - "4000:4000"
+
+  # NamelessNoteFront (se agregará cuando montemos el frontend)
+  # NamelessNoteFront:
+  #   build: ./frontend
+  #   container_name: NamelessNoteFront
+  #   depends_on:
+  #     - NamelessNoteBackend
+  #   ports:
+  #     - "3000:80"
+
+volumes:
+  mongo_data:

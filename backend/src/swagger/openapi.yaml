@@ -1,0 +1,26 @@
+openapi: 3.0.3
+info:
+  title: NamelessNote Backend API
+  version: 0.1.0
+  description: API para gestionar grupos y variables (RichText Base64)
+servers:
+  - url: http://localhost:4000
+paths:
+  /health:
+    get:
+      summary: Healthcheck
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  service:
+                    type: string
+                  ts:
+                    type: string
+                    format: date-time

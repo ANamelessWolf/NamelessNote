@@ -1,0 +1,1 @@
+# NamelessNote Frontend (placeholder)
