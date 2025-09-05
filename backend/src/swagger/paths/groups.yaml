@@ -1,0 +1,38 @@
+get:
+  tags: [Groups]
+  summary: Search groups by substring in groupName
+  parameters:
+    - in: query
+      name: search
+      schema: { type: string }
+      description: Substring to search (case-insensitive)
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/responses/GroupListResponse.yaml'
+    '500':
+      $ref: '../schemas/responses/CommonError.yaml'
+
+post:
+  tags: [Groups]
+  summary: Create a new group (without properties)
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../schemas/requests/CreateGroupRequest.yaml'
+  responses:
+    '201':
+      description: Created
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/responses/CreateGroupResponse.yaml'
+    '400':
+      $ref: '../schemas/responses/CommonError.yaml'
+    '500':
+      $ref: '../schemas/responses/CommonError.yaml'

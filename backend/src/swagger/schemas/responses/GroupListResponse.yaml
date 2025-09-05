@@ -1,0 +1,11 @@
+type: object
+properties:
+  success: { type: boolean, example: true }
+  statusCode: { type: integer, example: 200 }
+  message: { type: string, example: "Groups retrieved successfully" }
+  data:
+    type: object
+    properties:
+      items:
+        type: array
+        items: { $ref: './Group.yaml' }

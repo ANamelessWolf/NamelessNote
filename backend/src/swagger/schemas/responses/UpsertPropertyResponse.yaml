@@ -1,0 +1,17 @@
+type: object
+properties:
+  success:
+    type: boolean
+    example: true
+  statusCode:
+    type: integer
+    example: 200
+  message:
+    type: string
+    example: "Property created/updated"
+  data:
+    type: object
+    properties:
+      ok:
+        type: boolean
+        example: true

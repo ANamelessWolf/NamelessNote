@@ -1,0 +1,6 @@
+type: http
+scheme: bearer
+bearerFormat: JWT
+description: |
+  Use a Bearer token for authentication.
+  Example: "Authorization: Bearer {token}"

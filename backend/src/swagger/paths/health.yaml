@@ -1,0 +1,22 @@
+get:
+  tags: [Health]
+  summary: Service healthcheck
+  description: Returns a basic service status payload.
+  security: []  # keep public even if you enable global security
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: ok
+              service:
+                type: string
+                example: NamelessNoteBackend
+              ts:
+                type: string
+                format: date-time

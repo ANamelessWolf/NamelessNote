@@ -1,0 +1,27 @@
+type: object
+properties:
+  _id:
+    type: string
+    example: "66f0d3a85d2c3f1a4d0c5678"
+  groupId:
+    type: string
+    description: "MongoDB ObjectId reference to groups collection"
+    example: "66f0d3a85d2c3f1a4d0c1234"
+  propertyNameOriginal:
+    type: string
+    description: "Original case-preserved property name"
+    example: "DBPassword"
+  propertyNameLower:
+    type: string
+    description: "Lowercased property name (for case-insensitive uniqueness)"
+    example: "dbpassword"
+  propertyValueBase64:
+    type: string
+    description: "HTML content encoded as Base64"
+    example: "PHA+c2VjcmV0PC9wPg=="
+  createdAt:
+    type: string
+    format: date-time
+  updatedAt:
+    type: string
+    format: date-time

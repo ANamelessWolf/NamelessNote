@@ -1,0 +1,8 @@
+type: object
+required:
+  - groupName
+properties:
+  groupName:
+    type: string
+    maxLength: 30
+    example: "DevNotes"

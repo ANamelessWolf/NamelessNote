@@ -1,0 +1,7 @@
+type: object
+properties:
+  _id: { type: string, example: "66f0d3a85d2c3f1a4d0c1234" }
+  groupName: { type: string, maxLength: 30, example: "Credentials" }
+  owner: { type: string, example: "user@example.com" }
+  createdAt: { type: string, format: date-time }
+  updatedAt: { type: string, format: date-time }

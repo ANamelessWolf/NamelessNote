@@ -1,0 +1,25 @@
+delete:
+  tags: [Properties]
+  summary: Delete a property by name (case-insensitive)
+  parameters:
+    - in: path
+      name: groupId
+      required: true
+      schema: { type: string }
+      description: MongoDB ObjectId of the group
+    - in: path
+      name: propertyName
+      required: true
+      schema: { type: string }
+      description: Property name (A-Za-z0-9; 1..25)
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/responses/DeleteGroupResponse.yaml'
+    '400':
+      $ref: '../schemas/responses/CommonError.yaml'
+    '500':
+      $ref: '../schemas/responses/CommonError.yaml'

@@ -1,0 +1,47 @@
+get:
+  tags: [Properties]
+  summary: List all properties in a group (sanitized HTML + plain text)
+  parameters:
+    - in: path
+      name: groupId
+      required: true
+      schema: { type: string }
+      description: MongoDB ObjectId of the group
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/responses/PropertyListResponse.yaml'
+    '400':
+      $ref: '../schemas/responses/CommonError.yaml'
+    '500':
+      $ref: '../schemas/responses/CommonError.yaml'
+
+post:
+  tags: [Properties]
+  summary: Create or update a property (upsert; backend stores Base64)
+  parameters:
+    - in: path
+      name: groupId
+      required: true
+      schema: { type: string }
+      description: MongoDB ObjectId of the group
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../schemas/requests/UpsertPropertyRequest.yaml'
+  responses:
+    '200':
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/responses/UpsertPropertyResponse.yaml'
+    '400':
+      $ref: '../schemas/responses/CommonError.yaml'
+    '500':
+      $ref: '../schemas/responses/CommonError.yaml'

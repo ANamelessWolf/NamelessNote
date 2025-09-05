@@ -1,26 +1,58 @@
-openapi: 3.0.3
+openapi: "3.1.0"
 info:
   title: NamelessNote Backend API
-  version: 0.1.0
-  description: API para gestionar grupos y variables (RichText Base64)
+  version: 1.0.0
+  description: |
+    API for managing groups and properties (RichText stored as Base64).
+    This spec is split into multiple YAML files via $ref.
+
 servers:
   - url: http://localhost:4000
+    description: Local development
+
+tags:
+  - name: Groups
+    description: Group management
+  - name: Health
+    description: Service healthcheck
+  - name: Properties
+    description: Property management inside groups
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: './schemas/SecuritySchemes.yaml'
+  schemas:
+    Group:                 { $ref: './schemas/responses/Group.yaml' }
+    Properties:            { $ref: './schemas/Properties.yaml' }
+    PropertyListItem:      { $ref: './schemas/responses/PropertyListItem.yaml' }
+
+    # Requests
+    CreateGroupRequest:    { $ref: './schemas/requests/CreateGroupRequest.yaml' }
+    UpsertPropertyRequest: { $ref: './schemas/requests/UpsertPropertyRequest.yaml' }
+
+    # Responses
+    CreateGroupResponse:     { $ref: './schemas/responses/CreateGroupResponse.yaml' }
+    DeleteGroupResponse:     { $ref: './schemas/responses/DeleteGroupResponse.yaml' }
+    GroupListResponse:       { $ref: './schemas/responses/GroupListResponse.yaml' }
+    PropertyListResponse:    { $ref: './schemas/responses/PropertyListResponse.yaml' }
+    UpsertPropertyResponse:  { $ref: './schemas/responses/UpsertPropertyResponse.yaml' }
+
+  responses:
+    CommonError: { $ref: './schemas/responses/CommonError.yaml' }
+
+# Uncomment to enforce auth globally (paths can override with `security: []`)
+# security:
+#   - bearerAuth: []
+
 paths:
   /health:
-    get:
-      summary: Healthcheck
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                  service:
-                    type: string
-                  ts:
-                    type: string
-                    format: date-time
+    $ref: './paths/health.yaml'
+  /api/groups:
+    $ref: './paths/groups.yaml'
+  /api/groups/{groupId}:
+    $ref: './paths/groupById.yaml'
+  /api/groups/{groupId}/properties:
+    $ref: './paths/properties.yaml'
+  /api/groups/{groupId}/properties/{propertyName}:
+    $ref: './paths/propertyByName.yaml'
