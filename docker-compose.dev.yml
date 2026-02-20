@@ -1,18 +1,13 @@
 services:
   nameless_note_backend:
-    # Sobrescribimos el comando para dev y montamos el código
-    command: sh -c "npm install && npm run dev"
-    # Monta todo el proyecto backend para edición en caliente
+    command: sh -c "[ -d node_modules ] || npm install; npm run dev"
     volumes:
-      # Monta el proyecto (incluye src, tsconfig, nodemon.json, etc.)
       - ./backend:/app:rw
-      # Asegura que node_modules se mantenga dentro del contenedor (no en Windows host)
       - /app/node_modules
     environment:
       - MONGO_URI=mongodb://nameless_note_db:27017/namelessnote
       - CORS_ORIGIN=http://localhost:3000
 
-  # Frontend en modo DEV (Vite)
   nameless_note_front:
     image: node:20-alpine
     container_name: nameless_note_front_dev
@@ -23,9 +18,13 @@ services:
       - ./frontend:/app:rw
       - /app/node_modules
     environment:
-      # Ajusta si tu backend expone /api en otra ruta
       - VITE_API_BASE_URL=http://localhost:4000
       - VITE_GOOGLE_CLIENT_ID=PUT_YOUR_GOOGLE_CLIENT_ID
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 3000"
+    command: sh -c "[ -d node_modules ] || npm install; npm run dev -- --host 0.0.0.0 --port 3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/ >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
     ports:
       - "3000:3000"
