@@ -5,11 +5,11 @@ required:
 properties:
   propertyName:
     type: string
-    description: "A-Za-z0-9 (1..25), case-insensitive per group"
+    description: "A-Za-z0-9, spaces, -, _, [, ] (1..25), case-insensitive per group"
     example: "DBPassword"
     minLength: 1
     maxLength: 25
-    pattern: "^[A-Za-z0-9]{1,25}$"
+    pattern: "^[A-Za-z0-9\\s_\\-\\[\\]]{1,25}$"
   valueHtml:
     type: string
     description: "Rich text HTML (<= 2000 chars). Backend stores as Base64."

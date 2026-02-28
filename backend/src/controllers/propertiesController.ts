@@ -3,7 +3,7 @@ import { Types } from "mongoose";
 import { asyncErrorHandler } from "../middleware/error";
 import { Property } from "../models/Property";
 import { fromBase64, toBase64 } from "../utils/base64";
-import { sanitizeHtmlSafe, htmlToText, normalizePropName, PROP_NAME_REGEX } from "../utils/text";
+import { sanitizeHtmlSafe, normalizePropName, PROP_NAME_REGEX } from "../utils/text";
 import { Exception } from "../config/exeption";
 import { HttpResponse } from "../config/http-response";
 import { mapResults } from "../utils/mapper";
@@ -25,7 +25,7 @@ export const listPropertiesByGroup = asyncErrorHandler(
       const items = docs.map((d) => {
         const html = fromBase64(d.propertyValueBase64);
         const safeHtml = sanitizeHtmlSafe(html);
-        const text = htmlToText(html);
+        const text = html.replace(/<[^>]+>/g, '').trim();
         return {
           propertyName: d.propertyNameOriginal,
           valueHtml: safeHtml,
@@ -66,7 +66,7 @@ export const upsertProperty = asyncErrorHandler(
       if (!PROP_NAME_REGEX.test(propertyName || "")) {
         return next(
           new Exception(
-            "propertyName inválido (A-Za-z0-9, 1..25)",
+            "propertyName invalido (A-Za-z0-9, espacios, -, _, [, ], 1..25)",
             HTTP_STATUS.BAD_REQUEST,
             null
           )
@@ -147,3 +147,4 @@ export const deleteProperty = asyncErrorHandler(
     }
   }
 );
+

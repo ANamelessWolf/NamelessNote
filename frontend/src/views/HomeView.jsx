@@ -1,112 +1,266 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import ConfirmationModal, {
+  ConfirmationModalType,
+  GroupInputModal
+} from '../components/common/modals'
 import MenuGroupList from '../components/groups/MenuGroupList'
 import HomeLayout from '../components/layouts/HomeLayout'
 import PropertiesGrid from '../components/properties/PropertiesGrid'
+import { formatRichText, getStrings } from '../assets/strings'
+import {
+  createGroupThunk,
+  deleteGroupThunk,
+  fetchGroups,
+  setSearchTerm
+} from '../store/slices/groupsSlice'
+import {
+  deleteProperty as deletePropertyApi,
+  getProperties,
+  upsertProperty
+} from '../api/properties'
 
-const initialGroups = [
-  {
-    id: 'personal',
-    name: 'Personal',
-    items: [
-      { id: 'p1', name: 'API Key', value: '<b>my-secret-api-key-123456789</b>' },
-      { id: 'p2', name: 'Email', value: '<i>personal@email.com</i>' }
-    ]
-  },
-  {
-    id: 'work',
-    name: 'Trabajo',
-    items: [
-      { id: 'w1', name: 'Servidor', value: '<p>https://api.company.local</p>' },
-      { id: 'w2', name: 'Token', value: '<p>token-work-987654321</p>' }
-    ]
-  }
-]
+const mapPropertyForGrid = (item) => ({
+  id: item.propertyName,
+  name: item.propertyName,
+  valueHtml: item.valueHtml || '',
+  valueText: item.valueText || ''
+})
+
+const language = (import.meta.env.VITE_APP_LANGUAGE || 'es').toLowerCase()
+const MAX_GROUP_NAME_EXCLUSIVE = 30
 
 export default function HomeView({ onLogout }) {
-  const [groups, setGroups] = useState(initialGroups)
-  const [selectedGroupId, setSelectedGroupId] = useState(initialGroups[0].id)
+  const dispatch = useDispatch()
+  const [selectedGroupId, setSelectedGroupId] = useState(null)
+  const [properties, setProperties] = useState([])
+  const [createModalState, setCreateModalState] = useState({
+    open: false,
+    value: '',
+    touched: false
+  })
+  const [deleteModalState, setDeleteModalState] = useState({
+    open: false,
+    groupId: null,
+    groupName: ''
+  })
+
+  const { items: groups, searchTerm, deletingById, creating } = useSelector(
+    (state) => state.groups
+  )
+
+  const texts = getStrings(language)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      dispatch(fetchGroups(searchTerm))
+    }, 250)
+
+    return () => clearTimeout(timer)
+  }, [dispatch, searchTerm])
+
+  useEffect(() => {
+    if (!groups.length) {
+      setSelectedGroupId(null)
+      setProperties([])
+      return
+    }
+
+    const exists = groups.some((group) => group._id === selectedGroupId)
+    if (!exists) setSelectedGroupId(groups[0]._id)
+  }, [groups, selectedGroupId])
 
   const selectedGroup = useMemo(
-    () => groups.find((group) => group.id === selectedGroupId) ?? groups[0],
+    () => groups.find((group) => group._id === selectedGroupId) ?? null,
     [groups, selectedGroupId]
   )
 
-  const createGroup = () => {
-    const nextId = `group-${Date.now()}`
-    const newGroup = {
-      id: nextId,
-      name: `Grupo ${groups.length + 1}`,
-      items: []
-    }
-    setGroups((prev) => [...prev, newGroup])
-    setSelectedGroupId(nextId)
-  }
+  useEffect(() => {
+    const loadProperties = async () => {
+      if (!selectedGroup?._id) {
+        setProperties([])
+        return
+      }
 
-  const addProperty = ({ name, value }) => {
-    const nextProperty = {
-      id: `prop-${Date.now()}`,
-      name,
-      value
+      const items = await getProperties(selectedGroup._id)
+      setProperties(items.map(mapPropertyForGrid))
     }
 
-    setGroups((prev) =>
-      prev.map((group) =>
-        group.id === selectedGroup.id
-          ? { ...group, items: [...group.items, nextProperty] }
-          : group
-      )
-    )
+    loadProperties()
+  }, [selectedGroup?._id])
+
+  const openCreateGroupModal = () => {
+    setCreateModalState({
+      open: true,
+      value: '',
+      touched: false
+    })
   }
 
-  const deleteProperty = (propertyId) => {
-    setGroups((prev) =>
-      prev.map((group) =>
-        group.id === selectedGroup.id
-          ? {
-              ...group,
-              items: group.items.filter((property) => property.id !== propertyId)
-            }
-          : group
-      )
-    )
+  const closeCreateGroupModal = () => {
+    if (creating) return
+
+    setCreateModalState({
+      open: false,
+      value: '',
+      touched: false
+    })
   }
 
-  const updateProperty = (propertyId, value) => {
-    setGroups((prev) =>
-      prev.map((group) =>
-        group.id === selectedGroup.id
-          ? {
-              ...group,
-              items: group.items.map((property) =>
-                property.id === propertyId ? { ...property, value } : property
-              )
-            }
-          : group
-      )
-    )
+  const onCreateGroupNameChange = (value) => {
+    setCreateModalState((prev) => ({
+      ...prev,
+      value,
+      touched: prev.touched
+    }))
   }
+
+  const confirmCreateGroup = async () => {
+    const trimmedName = createModalState.value.trim()
+    const hasLengthError = trimmedName.length >= MAX_GROUP_NAME_EXCLUSIVE
+
+    if (!trimmedName || hasLengthError) {
+      setCreateModalState((prev) => ({ ...prev, touched: true }))
+      return
+    }
+
+    const result = await dispatch(createGroupThunk(trimmedName))
+
+    if (result.meta.requestStatus === 'fulfilled' && result.payload?._id) {
+      setSelectedGroupId(result.payload._id)
+      closeCreateGroupModal()
+    }
+  }
+
+  const closeDeleteModal = () => {
+    setDeleteModalState({
+      open: false,
+      groupId: null,
+      groupName: ''
+    })
+  }
+
+  const removeGroup = (groupId) => {
+    const group = groups.find((item) => item._id === groupId)
+
+    setDeleteModalState({
+      open: true,
+      groupId,
+      groupName: group?.groupName || ''
+    })
+  }
+
+  const confirmDeleteGroup = async () => {
+    if (!deleteModalState.groupId) return
+
+    await dispatch(deleteGroupThunk(deleteModalState.groupId))
+    closeDeleteModal()
+  }
+
+  const addProperty = async ({ name, value }) => {
+    if (!selectedGroup?._id) return
+    await upsertProperty(selectedGroup._id, { propertyName: name, valueHtml: value })
+    const items = await getProperties(selectedGroup._id)
+    setProperties(items.map(mapPropertyForGrid))
+  }
+
+  const deleteProperty = async (propertyId) => {
+    if (!selectedGroup?._id) return
+    await deletePropertyApi(selectedGroup._id, propertyId)
+    const items = await getProperties(selectedGroup._id)
+    setProperties(items.map(mapPropertyForGrid))
+  }
+
+  const updateProperty = async (propertyId, value) => {
+    if (!selectedGroup?._id) return
+    await upsertProperty(selectedGroup._id, {
+      propertyName: propertyId,
+      valueHtml: value
+    })
+    const items = await getProperties(selectedGroup._id)
+    setProperties(items.map(mapPropertyForGrid))
+  }
+
+  const isDeletingSelectedGroup = deleteModalState.groupId
+    ? Boolean(deletingById[deleteModalState.groupId])
+    : false
+
+  const createGroupName = createModalState.value
+  const trimmedCreateGroupName = createGroupName.trim()
+  const createGroupLengthError =
+    trimmedCreateGroupName.length >= MAX_GROUP_NAME_EXCLUSIVE
+      ? formatRichText(texts.modals.createGroup.lengthError, {
+          max: MAX_GROUP_NAME_EXCLUSIVE
+        })
+      : ''
+
+  const createGroupRequiredError =
+    createModalState.touched && !trimmedCreateGroupName
+      ? texts.modals.createGroup.requiredError
+      : ''
+
+  const createGroupErrorText = createGroupRequiredError || createGroupLengthError
 
   return (
-    <HomeLayout
-      title="Home View"
-      onLogout={onLogout}
-      sidebar={
-        <MenuGroupList
-          groups={groups}
-          selectedGroupId={selectedGroup.id}
-          onSelectGroup={setSelectedGroupId}
-          onCreateGroup={createGroup}
-        />
-      }
-      content={
-        <PropertiesGrid
-          groupName={selectedGroup.name}
-          properties={selectedGroup.items}
-          onAddProperty={addProperty}
-          onDeleteProperty={deleteProperty}
-          onUpdateProperty={updateProperty}
-        />
-      }
-    />
+    <>
+      <HomeLayout
+        title="Home View"
+        onLogout={onLogout}
+        sidebar={
+          <MenuGroupList
+            groups={groups}
+            selectedGroupId={selectedGroup?._id}
+            onSelectGroup={setSelectedGroupId}
+            onCreateGroup={openCreateGroupModal}
+            onDeleteGroup={removeGroup}
+            deletingById={deletingById}
+            searchTerm={searchTerm}
+            onSearchChange={(value) => dispatch(setSearchTerm(value))}
+          />
+        }
+        content={
+          <PropertiesGrid
+            groupName={selectedGroup?.groupName || 'Sin grupo seleccionado'}
+            properties={properties}
+            onAddProperty={addProperty}
+            onDeleteProperty={deleteProperty}
+            onUpdateProperty={updateProperty}
+          />
+        }
+      />
+
+      <GroupInputModal
+        open={createModalState.open}
+        title={texts.modals.createGroup.title}
+        instructions={formatRichText(texts.modals.createGroup.instructions, {
+          max: MAX_GROUP_NAME_EXCLUSIVE
+        })}
+        value={createGroupName}
+        onChange={onCreateGroupNameChange}
+        onConfirm={confirmCreateGroup}
+        onCancel={closeCreateGroupModal}
+        okLabel={texts.common.ok}
+        cancelLabel={texts.common.cancel}
+        inputLabel={texts.modals.createGroup.inputLabel}
+        inputPlaceholder={texts.modals.createGroup.inputPlaceholder}
+        errorText={createGroupErrorText}
+        maxLength={MAX_GROUP_NAME_EXCLUSIVE - 1}
+        loading={creating}
+      />
+
+      <ConfirmationModal
+        open={deleteModalState.open}
+        type={ConfirmationModalType.YesNo}
+        title={texts.modals.deleteGroup.title}
+        message={formatRichText(texts.modals.deleteGroup.description, {
+          groupName: deleteModalState.groupName || selectedGroup?.groupName || ''
+        })}
+        labels={texts.common}
+        onConfirm={confirmDeleteGroup}
+        onReject={closeDeleteModal}
+        onClose={closeDeleteModal}
+        loading={isDeletingSelectedGroup}
+      />
+    </>
   )
 }

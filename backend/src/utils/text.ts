@@ -30,4 +30,4 @@ export function htmlToText(html: string): string {
 
 export const normalizePropName = (name: string) => name.toLowerCase();
 
-export const PROP_NAME_REGEX = /^[A-Za-z0-9]{1,25}$/;
+export const PROP_NAME_REGEX = /^[A-Za-z0-9\s_\-\[\]]{1,25}$/;

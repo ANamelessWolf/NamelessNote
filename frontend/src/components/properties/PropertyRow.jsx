@@ -17,17 +17,31 @@ import {
   Tooltip,
   Typography
 } from '@mui/material'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import RichTextEditor from '../common/RichTextEditor'
+import { sanitizeRichText } from '../../utils/sanitizeRichText'
 
 const stripHtml = (value) => value.replace(/<[^>]+>/g, '').trim()
+const hasRichHtml = (value) => /<\/?[a-z][^>]*>/i.test(value || '')
 
 export default function PropertyRow({ property, onDelete, onSave }) {
   const [expanded, setExpanded] = useState(false)
   const [showValue, setShowValue] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
-  const [draft, setDraft] = useState(property.value)
+  const [draft, setDraft] = useState(property.valueHtml)
 
-  const plainText = useMemo(() => stripHtml(property.value), [property.value])
+  useEffect(() => {
+    setDraft(property.valueHtml)
+  }, [property.valueHtml])
+
+  const plainText = useMemo(
+    () => property.valueText || stripHtml(property.valueHtml || ''),
+    [property.valueText, property.valueHtml]
+  )
+  const isPlainTextValue = useMemo(
+    () => !hasRichHtml(property.valueHtml),
+    [property.valueHtml]
+  )
   const previewText = useMemo(
     () => (plainText.length > 42 ? `${plainText.slice(0, 42)}...` : plainText),
     [plainText]
@@ -38,7 +52,7 @@ export default function PropertyRow({ property, onDelete, onSave }) {
   }
 
   const saveEdit = () => {
-    onSave(property.id, draft)
+    onSave(property.id, sanitizeRichText(draft))
     setIsEditing(false)
   }
 
@@ -59,45 +73,49 @@ export default function PropertyRow({ property, onDelete, onSave }) {
         </Typography>
 
         <Stack direction="row" spacing={1} alignItems="center">
-          <TextField
-            size="small"
-            fullWidth
-            value={showValue ? previewText : plainText}
-            type={showValue ? 'text' : 'password'}
-            InputProps={{ readOnly: true }}
-          />
-          <Tooltip title="Copiar">
-            <IconButton onClick={copyPlainText}>
-              <ContentCopy fontSize="small" />
-            </IconButton>
-          </Tooltip>
+          {isPlainTextValue ? (
+            <>
+              <TextField
+                size="small"
+                fullWidth
+                value={showValue ? previewText : plainText}
+                type={showValue ? 'text' : 'password'}
+                InputProps={{ readOnly: true }}
+              />
+              <Tooltip title="Copiar">
+                <IconButton onClick={copyPlainText}>
+                  <ContentCopy fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </>
+          ) : null}
           <Tooltip title={expanded ? 'Ocultar' : 'Ver'}>
             <IconButton onClick={() => setExpanded((v) => !v)}>
               {expanded ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />}
             </IconButton>
           </Tooltip>
-          <Tooltip title={showValue ? 'Ocultar valor' : 'Mostrar valor'}>
-            <IconButton onClick={() => setShowValue((v) => !v)}>
-              {showValue ? (
-                <VisibilityOff fontSize="small" />
-              ) : (
-                <Visibility fontSize="small" />
-              )}
-            </IconButton>
-          </Tooltip>
+          {isPlainTextValue ? (
+            <Tooltip title={showValue ? 'Ocultar valor' : 'Mostrar valor'}>
+              <IconButton onClick={() => setShowValue((v) => !v)}>
+                {showValue ? (
+                  <VisibilityOff fontSize="small" />
+                ) : (
+                  <Visibility fontSize="small" />
+                )}
+              </IconButton>
+            </Tooltip>
+          ) : null}
         </Stack>
       </Box>
 
       <Collapse in={expanded}>
         <Box sx={{ py: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
           {isEditing ? (
-            <TextField
-              fullWidth
-              multiline
-              minRows={4}
+            <RichTextEditor
               label="Rich text"
               value={draft}
-              onChange={(e) => setDraft(e.target.value)}
+              minRows={4}
+              onChange={setDraft}
             />
           ) : (
             <Box
@@ -105,9 +123,12 @@ export default function PropertyRow({ property, onDelete, onSave }) {
                 p: 1.5,
                 border: '1px solid',
                 borderColor: 'divider',
-                borderRadius: 1
+                borderRadius: 1,
+                whiteSpace: 'pre-wrap',
+                overflowWrap: 'anywhere',
+                wordBreak: 'break-word'
               }}
-              dangerouslySetInnerHTML={{ __html: property.value }}
+              dangerouslySetInnerHTML={{ __html: property.valueHtml }}
             />
           )}
 

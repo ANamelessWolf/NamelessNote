@@ -7,7 +7,11 @@ import {
   Typography
 } from '@mui/material'
 import { useState } from 'react'
+import RichTextEditor from '../common/RichTextEditor'
+import { sanitizeRichText } from '../../utils/sanitizeRichText'
 import PropertyRow from './PropertyRow'
+
+const PROP_NAME_REGEX = /^[A-Za-z0-9\s_\-\[\]]{1,25}$/
 
 export default function PropertiesGrid({
   groupName,
@@ -19,6 +23,11 @@ export default function PropertiesGrid({
   const [showNewField, setShowNewField] = useState(false)
   const [newName, setNewName] = useState('')
   const [newValue, setNewValue] = useState('')
+  const trimmedNewName = newName.trim()
+  const isNewNameValid = PROP_NAME_REGEX.test(trimmedNewName)
+  const isNewNameInvalid = trimmedNewName.length > 0 && !isNewNameValid
+  const canSaveNewProperty =
+    Boolean(trimmedNewName) && isNewNameValid && Boolean(newValue.trim())
 
   const resetNewField = () => {
     setShowNewField(false)
@@ -27,10 +36,12 @@ export default function PropertiesGrid({
   }
 
   const saveNewProperty = () => {
-    if (!newName.trim() || !newValue.trim()) return
+    if (!canSaveNewProperty) return
+    const sanitizedValue = sanitizeRichText(newValue)
+    if (!sanitizedValue) return
     onAddProperty({
-      name: newName.trim(),
-      value: newValue.trim()
+      name: trimmedNewName,
+      value: sanitizedValue
     })
     resetNewField()
   }
@@ -46,9 +57,6 @@ export default function PropertiesGrid({
       >
         <Box>
           <Typography variant="subtitle1" fontWeight={700}>
-            Main Content
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
             {groupName}
           </Typography>
         </Box>
@@ -101,19 +109,23 @@ export default function PropertiesGrid({
             size="small"
             label="Nombre"
             value={newName}
+            error={isNewNameInvalid}
+            helperText={
+              isNewNameInvalid
+                ? 'Nombre invalido. Usa A-Z, 0-9, espacios, -, _, [, ] (1..25).'
+                : ''
+            }
             onChange={(e) => setNewName(e.target.value)}
           />
           <Stack spacing={1}>
-            <TextField
-              size="small"
+            <RichTextEditor
               label="Valor"
-              multiline
-              minRows={3}
               value={newValue}
-              onChange={(e) => setNewValue(e.target.value)}
+              minRows={3}
+              onChange={setNewValue}
             />
             <Stack direction="row" spacing={1}>
-              <Button variant="contained" onClick={saveNewProperty}>
+              <Button variant="contained" onClick={saveNewProperty} disabled={!canSaveNewProperty}>
                 Guardar
               </Button>
               <Button variant="text" color="inherit" onClick={resetNewField}>
