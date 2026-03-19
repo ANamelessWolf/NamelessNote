@@ -4,7 +4,9 @@ import {
   Button,
   Stack,
   TextField,
-  Typography
+  Typography,
+  useMediaQuery,
+  useTheme
 } from '@mui/material'
 import { useState } from 'react'
 import RichTextEditor from '../common/RichTextEditor'
@@ -20,6 +22,10 @@ export default function PropertiesGrid({
   onDeleteProperty,
   onUpdateProperty
 }) {
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+  const isPortrait = useMediaQuery('(orientation: portrait)')
+  const shouldHideColumnHeaders = isMobile && isPortrait
   const [showNewField, setShowNewField] = useState(false)
   const [newName, setNewName] = useState('')
   const [newValue, setNewValue] = useState('')
@@ -69,32 +75,25 @@ export default function PropertiesGrid({
         </Button>
       </Stack>
 
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', sm: '1fr 2fr' },
-          gap: 1.5,
-          py: 1,
-          borderBottom: '1px solid',
-          borderColor: 'divider'
-        }}
-      >
-        <Typography variant="caption" fontWeight={700}>
-          Nombre de propiedad
-        </Typography>
-        <Typography variant="caption" fontWeight={700}>
-          Valor de propiedad
-        </Typography>
-      </Box>
-
-      {properties.map((property) => (
-        <PropertyRow
-          key={property.id}
-          property={property}
-          onDelete={onDeleteProperty}
-          onSave={onUpdateProperty}
-        />
-      ))}
+      {!shouldHideColumnHeaders ? (
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 2fr' },
+            gap: 1.5,
+            py: 1,
+            borderBottom: '1px solid',
+            borderColor: 'divider'
+          }}
+        >
+          <Typography variant="caption" fontWeight={700}>
+            Nombre de propiedad
+          </Typography>
+          <Typography variant="caption" fontWeight={700}>
+            Valor de propiedad
+          </Typography>
+        </Box>
+      ) : null}
 
       {showNewField && (
         <Box
@@ -135,6 +134,17 @@ export default function PropertiesGrid({
           </Stack>
         </Box>
       )}
+
+      {properties.map((property) => (
+        <PropertyRow
+          key={property.id}
+          property={property}
+          onDelete={onDeleteProperty}
+          onSave={onUpdateProperty}
+        />
+      ))}
+
+
     </Box>
   )
 }

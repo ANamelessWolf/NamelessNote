@@ -1,8 +1,7 @@
 import axios from "axios";
+import { getAppConfig } from '../utils/appConfig'
 
-const ENV_BASE_URL = import.meta.env.VITE_API_BASE_URL?.trim();
-const FALLBACK_BASE_URL = `http://${window.location.hostname}:4000`;
-const BASE_URL = ENV_BASE_URL || FALLBACK_BASE_URL;
+const BASE_URL = getAppConfig().apiBaseUrl;
 
 export const http = axios.create({
   baseURL: BASE_URL,
@@ -41,6 +40,10 @@ http.interceptors.response.use(
     }
   }
 );
+
+export function setHttpBaseUrl(nextBaseUrl) {
+  http.defaults.baseURL = nextBaseUrl;
+}
 
 export async function get(path, config = {}) {
   const res = await http.get(path, config);

@@ -8,6 +8,8 @@ import swaggerRouter from './swagger/';
 import { notFound, errorHandler } from './middleware/error';
 
 const app = express();
+const LOCAL_NETWORK_ORIGIN = /^https?:\/\/192\.168\.1\.\d+(?::\d+)?$/;
+const LOCALHOST_ORIGIN = /^https?:\/\/localhost(?::\d+)?$/;
 
 app.use(helmet()); // global, con CSP por defecto
 
@@ -21,7 +23,27 @@ const swaggerCsp = helmet.contentSecurityPolicy({
   },
 });
 
-app.use(cors({ origin: config.corsOrigin }));
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      if (
+        config.corsOrigin.includes(origin) ||
+        LOCAL_NETWORK_ORIGIN.test(origin) ||
+        LOCALHOST_ORIGIN.test(origin)
+      ) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`Origin not allowed by CORS: ${origin}`));
+    },
+  })
+);
 app.use(express.json({ limit: '1mb' }));
 app.use(morgan('dev'));
 

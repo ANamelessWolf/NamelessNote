@@ -27,10 +27,9 @@ const mapPropertyForGrid = (item) => ({
   valueText: item.valueText || ''
 })
 
-const language = (import.meta.env.VITE_APP_LANGUAGE || 'es').toLowerCase()
 const MAX_GROUP_NAME_EXCLUSIVE = 30
 
-export default function HomeView({ onLogout }) {
+export default function HomeView({ config, onLogout, onOpenConfig }) {
   const dispatch = useDispatch()
   const [selectedGroupId, setSelectedGroupId] = useState(null)
   const [properties, setProperties] = useState([])
@@ -49,7 +48,7 @@ export default function HomeView({ onLogout }) {
     (state) => state.groups
   )
 
-  const texts = getStrings(language)
+  const texts = getStrings(config?.language)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -206,6 +205,7 @@ export default function HomeView({ onLogout }) {
       <HomeLayout
         title="Home View"
         onLogout={onLogout}
+        onOpenConfig={onOpenConfig}
         sidebar={
           <MenuGroupList
             groups={groups}
