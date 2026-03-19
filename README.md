@@ -71,6 +71,12 @@ DEV_HTTPS_KEY_FILE=../certs/namelessnote-local-key.pem
 
 Nota: `VITE_API_BASE_URL` no debe incluir `/api`, porque el frontend ya agrega ese prefijo en sus llamadas.
 
+Si levantas el proyecto con `npm run dev` desde la raiz, recuerda que entra `docker-compose.dev.yml`. Ese archivo tambien debe montar `certs/` y activar HTTPS en frontend y backend. Si cambias certificados o variables, reinicia los contenedores con:
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml down
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+```
+
 ### 6. Restaurar el certificado en otra maquina o despues de formatear
 Los archivos `certs/namelessnote-local.pem` y `certs/namelessnote-local-key.pem` por si solos no bastan si la CA local no esta instalada.
 
