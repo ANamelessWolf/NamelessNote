@@ -47,7 +47,7 @@ function AppRouteViews() {
           isAuthenticated ? (
             <Navigate to="/home" replace />
           ) : (
-            <LoginView onLogin={authApi.login} />
+            <LoginView language={config.language} onLogin={authApi.login} />
           )
         }
       />
@@ -71,6 +71,7 @@ function AppRouteViews() {
           isAuthenticated ? (
             <ConfigView
               config={config}
+              language={config.language}
               onSave={saveConfig}
               onBack={() => navigate('/home')}
             />

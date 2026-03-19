@@ -23,7 +23,8 @@ export default function MenuGroupList({
   onDeleteGroup,
   deletingById,
   searchTerm,
-  onSearchChange
+  onSearchChange,
+  texts
 }) {
   const shouldEnableListScrollByCount = groups.length > MAX_GROUP_NAMES_IN_LIST
   const [isCollapsed, setIsCollapsed] = useState(false)
@@ -32,9 +33,9 @@ export default function MenuGroupList({
     <Box>
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
         <Typography variant="subtitle1" fontWeight={700}>
-          Menu Group
+          {texts.title}
         </Typography>
-        <Tooltip title={isCollapsed ? 'Expandir' : 'Colapsar'}>
+        <Tooltip title={isCollapsed ? texts.expand : texts.collapse}>
           <IconButton size="small" onClick={() => setIsCollapsed((prev) => !prev)}>
             {isCollapsed ? <ExpandMore fontSize="small" /> : <ExpandLess fontSize="small" />}
           </IconButton>
@@ -42,7 +43,11 @@ export default function MenuGroupList({
       </Stack>
 
       <Collapse in={!isCollapsed}>
-        <GroupsSearchBar value={searchTerm} onChange={onSearchChange} />
+        <GroupsSearchBar
+          value={searchTerm}
+          onChange={onSearchChange}
+          placeholder={texts.searchPlaceholder}
+        />
         <List
           dense
           disablePadding
@@ -77,7 +82,7 @@ export default function MenuGroupList({
           startIcon={<Add />}
           onClick={onCreateGroup}
         >
-          Nuevo Grupo
+          {texts.newGroup}
         </Button>
       </Collapse>
     </Box>

@@ -12,12 +12,13 @@ import {
 } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import SaveIcon from '@mui/icons-material/Save'
-import { supportedLanguages } from '../assets/strings'
+import { getStrings, supportedLanguages } from '../assets/strings'
 import { getDefaultAppConfig } from '../utils/appConfig'
 
 const defaultConfig = getDefaultAppConfig()
 
-export default function ConfigView({ config, onBack, onSave }) {
+export default function ConfigView({ config, language, onBack, onSave }) {
+  const texts = getStrings(language)
   const [form, setForm] = useState(config)
   const [saved, setSaved] = useState(false)
 
@@ -40,7 +41,7 @@ export default function ConfigView({ config, onBack, onSave }) {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', py: 4, bgcolor: 'background.default' }}>
+    <Box sx={{ minHeight: '100vh', py: 4 }}>
       <Container maxWidth="sm">
         <Paper sx={{ p: 3 }}>
           <Stack spacing={3} component="form" onSubmit={handleSubmit}>
@@ -53,20 +54,20 @@ export default function ConfigView({ config, onBack, onSave }) {
               }}
             >
               <Typography variant="h5" fontWeight={700}>
-                Configuracion
+                {texts.config.title}
               </Typography>
               <Button
                 variant="outlined"
                 startIcon={<ArrowBackIcon />}
                 onClick={onBack}
               >
-                Volver
+                {texts.common.back}
               </Button>
             </Box>
 
             <TextField
               select
-              label="Idioma"
+              label={texts.config.language}
               value={form.language}
               onChange={handleChange('language')}
               fullWidth
@@ -79,7 +80,7 @@ export default function ConfigView({ config, onBack, onSave }) {
             </TextField>
 
             <TextField
-              label="API URL"
+              label={texts.config.apiUrl}
               value={form.apiBaseUrl}
               onChange={handleChange('apiBaseUrl')}
               placeholder={defaultConfig.apiBaseUrl}
@@ -87,14 +88,14 @@ export default function ConfigView({ config, onBack, onSave }) {
             />
 
             <Typography variant="body2" color="text.secondary">
-              Estos valores se guardan en localStorage y sobreescriben los definidos en .env.
+              {texts.config.description}
             </Typography>
 
-            {saved ? <Alert severity="success">Configuracion guardada.</Alert> : null}
+            {saved ? <Alert severity="success">{texts.config.saved}</Alert> : null}
 
             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
               <Button type="submit" variant="contained" startIcon={<SaveIcon />}>
-                Guardar
+                {texts.common.save}
               </Button>
             </Box>
           </Stack>

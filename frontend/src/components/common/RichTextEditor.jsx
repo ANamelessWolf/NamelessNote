@@ -30,7 +30,8 @@ export default function RichTextEditor({
   label,
   value,
   onChange,
-  minRows = 4
+  minRows = 4,
+  texts
 }) {
   const editorRef = useRef(null)
 
@@ -48,7 +49,7 @@ export default function RichTextEditor({
   }
 
   const addLink = () => {
-    const url = window.prompt('URL')
+    const url = window.prompt(texts.promptUrl)
     if (!url) return
     runCommand('createLink', url)
   }
@@ -62,30 +63,30 @@ export default function RichTextEditor({
       ) : null}
 
       <Stack direction="row" spacing={0.5} sx={{ mb: 0.5 }}>
-        <IconButton size="small" onClick={() => runCommand('bold')} title="Negrita">
+        <IconButton size="small" onClick={() => runCommand('bold')} title={texts.bold}>
           <FormatBold fontSize="small" />
         </IconButton>
-        <IconButton size="small" onClick={() => runCommand('italic')} title="Cursiva">
+        <IconButton size="small" onClick={() => runCommand('italic')} title={texts.italic}>
           <FormatItalic fontSize="small" />
         </IconButton>
-        <IconButton size="small" onClick={() => runCommand('underline')} title="Subrayado">
+        <IconButton size="small" onClick={() => runCommand('underline')} title={texts.underline}>
           <FormatUnderlined fontSize="small" />
         </IconButton>
         <IconButton
           size="small"
           onClick={() => runCommand('insertUnorderedList')}
-          title="Lista"
+          title={texts.bulletList}
         >
           <FormatListBulleted fontSize="small" />
         </IconButton>
         <IconButton
           size="small"
           onClick={() => runCommand('insertOrderedList')}
-          title="Lista numerada"
+          title={texts.numberedList}
         >
           <FormatListNumbered fontSize="small" />
         </IconButton>
-        <IconButton size="small" onClick={addLink} title="Link">
+        <IconButton size="small" onClick={addLink} title={texts.link}>
           <LinkIcon fontSize="small" />
         </IconButton>
       </Stack>

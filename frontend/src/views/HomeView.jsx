@@ -203,7 +203,8 @@ export default function HomeView({ config, onLogout, onOpenConfig }) {
   return (
     <>
       <HomeLayout
-        title="Home View"
+        title={texts.home.title}
+        texts={texts}
         onLogout={onLogout}
         onOpenConfig={onOpenConfig}
         sidebar={
@@ -216,15 +217,22 @@ export default function HomeView({ config, onLogout, onOpenConfig }) {
             deletingById={deletingById}
             searchTerm={searchTerm}
             onSearchChange={(value) => dispatch(setSearchTerm(value))}
+            texts={texts.groups}
           />
         }
         content={
           <PropertiesGrid
-            groupName={selectedGroup?.groupName || 'Sin grupo seleccionado'}
+            groupName={selectedGroup?.groupName || texts.home.noSelectedGroup}
             properties={properties}
             onAddProperty={addProperty}
             onDeleteProperty={deleteProperty}
             onUpdateProperty={updateProperty}
+            texts={{
+              ...texts.properties,
+              save: texts.common.save,
+              cancel: texts.common.cancel
+            }}
+            editorTexts={texts.editor}
           />
         }
       />

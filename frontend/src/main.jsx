@@ -4,6 +4,7 @@ import { CssBaseline, ThemeProvider, createTheme } from '@mui/material'
 import { Provider } from 'react-redux'
 import AppRoutes from './routes'
 import { store } from './store'
+import rocksBackground from './assets/img/Rocks 2304x1440.jpg'
 
 const theme = createTheme({
   palette: {
@@ -23,6 +24,22 @@ const theme = createTheme({
   },
   typography: {
     fontFamily: '"Work Sans", "Segoe UI", sans-serif'
+  },
+  components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          backgroundImage: `linear-gradient(rgba(244, 247, 248, 0.25), rgba(244, 247, 248, 0.3)), url("${rocksBackground}")`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed',
+          backgroundRepeat: 'no-repeat'
+        },
+        '#root': {
+          minHeight: '100vh'
+        }
+      }
+    }
   }
 })
 

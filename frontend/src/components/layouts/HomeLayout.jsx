@@ -13,6 +13,7 @@ import FooterInfo from "../common/FooterInfo";
 
 export default function HomeLayout({
   title,
+  texts,
   sidebar,
   content,
   onLogout,
@@ -47,7 +48,7 @@ export default function HomeLayout({
                 startIcon={<LogoutIcon />}
                 onClick={onLogout}
               >
-                Salir
+                {texts.common.logout}
               </Button>
             </Box>
           </Box>
@@ -62,7 +63,7 @@ export default function HomeLayout({
           </Grid2>
         </Grid2>
       </Container>
-      <FooterInfo />
+      <FooterInfo texts={texts.footer} />
     </Box>
   );
 }

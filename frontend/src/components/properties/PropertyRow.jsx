@@ -24,7 +24,7 @@ import { sanitizeRichText } from '../../utils/sanitizeRichText'
 const stripHtml = (value) => value.replace(/<[^>]+>/g, '').trim()
 const hasRichHtml = (value) => /<\/?[a-z][^>]*>/i.test(value || '')
 
-export default function PropertyRow({ property, onDelete, onSave }) {
+export default function PropertyRow({ property, onDelete, onSave, texts, editorTexts }) {
   const [expanded, setExpanded] = useState(false)
   const [showValue, setShowValue] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -82,20 +82,20 @@ export default function PropertyRow({ property, onDelete, onSave }) {
                 type={showValue ? 'text' : 'password'}
                 InputProps={{ readOnly: true }}
               />
-              <Tooltip title="Copiar">
+              <Tooltip title={texts.copy}>
                 <IconButton onClick={copyPlainText}>
                   <ContentCopy fontSize="small" />
                 </IconButton>
               </Tooltip>
             </>
           ) : null}
-          <Tooltip title={expanded ? 'Ocultar' : 'Ver'}>
+          <Tooltip title={expanded ? texts.hide : texts.show}>
             <IconButton onClick={() => setExpanded((v) => !v)}>
               {expanded ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />}
             </IconButton>
           </Tooltip>
           {isPlainTextValue ? (
-            <Tooltip title={showValue ? 'Ocultar valor' : 'Mostrar valor'}>
+            <Tooltip title={showValue ? texts.hideValue : texts.showValue}>
               <IconButton onClick={() => setShowValue((v) => !v)}>
                 {showValue ? (
                   <VisibilityOff fontSize="small" />
@@ -112,10 +112,11 @@ export default function PropertyRow({ property, onDelete, onSave }) {
         <Box sx={{ py: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
           {isEditing ? (
             <RichTextEditor
-              label="Rich text"
+              label={texts.richText}
               value={draft}
               minRows={4}
               onChange={setDraft}
+              texts={editorTexts}
             />
           ) : (
             <Box

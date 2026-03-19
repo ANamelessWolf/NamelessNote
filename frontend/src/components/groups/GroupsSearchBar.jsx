@@ -1,12 +1,12 @@
 import SearchIcon from '@mui/icons-material/Search'
 import { InputAdornment, TextField } from '@mui/material'
 
-export default function GroupsSearchBar({ value, onChange }) {
+export default function GroupsSearchBar({ value, onChange, placeholder }) {
   return (
     <TextField
       size="small"
       fullWidth
-      placeholder="Buscar grupo..."
+      placeholder={placeholder}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       sx={{ mb: 1.5 }}

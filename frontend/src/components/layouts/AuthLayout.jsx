@@ -1,6 +1,6 @@
 import { Box, Paper, Typography } from '@mui/material'
 
-export default function AuthLayout({ children }) {
+export default function AuthLayout({ children, subtitle }) {
   return (
     <Box
       sx={{
@@ -25,7 +25,7 @@ export default function AuthLayout({ children }) {
           NamelessNote
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Inicia sesion para administrar tus grupos y propiedades.
+          {subtitle}
         </Typography>
         {children}
       </Paper>

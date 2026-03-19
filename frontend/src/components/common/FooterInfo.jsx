@@ -1,6 +1,6 @@
 import { Box, Container, Typography } from '@mui/material'
 
-export default function FooterInfo() {
+export default function FooterInfo({ texts }) {
   return (
     <Box
       component="footer"
@@ -14,11 +14,10 @@ export default function FooterInfo() {
     >
       <Container>
         <Typography variant="subtitle2" fontWeight={700}>
-          About
+          {texts.title}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          NamelessNote organiza propiedades de texto y valores sensibles de forma
-          simple, editable y responsiva.
+          {texts.description}
         </Typography>
       </Container>
     </Box>

@@ -20,7 +20,9 @@ export default function PropertiesGrid({
   properties,
   onAddProperty,
   onDeleteProperty,
-  onUpdateProperty
+  onUpdateProperty,
+  texts,
+  editorTexts
 }) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
@@ -71,7 +73,7 @@ export default function PropertiesGrid({
           startIcon={<Add />}
           onClick={() => setShowNewField(true)}
         >
-          Agregar nueva columna
+          {texts.addColumn}
         </Button>
       </Stack>
 
@@ -87,10 +89,10 @@ export default function PropertiesGrid({
           }}
         >
           <Typography variant="caption" fontWeight={700}>
-            Nombre de propiedad
+            {texts.propertyName}
           </Typography>
           <Typography variant="caption" fontWeight={700}>
-            Valor de propiedad
+            {texts.propertyValue}
           </Typography>
         </Box>
       ) : null}
@@ -106,29 +108,26 @@ export default function PropertiesGrid({
         >
           <TextField
             size="small"
-            label="Nombre"
+            label={texts.nameLabel}
             value={newName}
             error={isNewNameInvalid}
-            helperText={
-              isNewNameInvalid
-                ? 'Nombre invalido. Usa A-Z, 0-9, espacios, -, _, [, ] (1..25).'
-                : ''
-            }
+            helperText={isNewNameInvalid ? texts.invalidName : ''}
             onChange={(e) => setNewName(e.target.value)}
           />
           <Stack spacing={1}>
             <RichTextEditor
-              label="Valor"
+              label={texts.valueLabel}
               value={newValue}
               minRows={3}
               onChange={setNewValue}
+              texts={editorTexts}
             />
             <Stack direction="row" spacing={1}>
               <Button variant="contained" onClick={saveNewProperty} disabled={!canSaveNewProperty}>
-                Guardar
+                {texts.save}
               </Button>
               <Button variant="text" color="inherit" onClick={resetNewField}>
-                Cancelar
+                {texts.cancel}
               </Button>
             </Stack>
           </Stack>
@@ -141,10 +140,10 @@ export default function PropertiesGrid({
           property={property}
           onDelete={onDeleteProperty}
           onSave={onUpdateProperty}
+          texts={texts}
+          editorTexts={editorTexts}
         />
       ))}
-
-
     </Box>
   )
 }

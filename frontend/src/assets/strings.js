@@ -4,7 +4,62 @@ const strings = {
       yes: 'Yes',
       no: 'No',
       ok: 'OK',
-      cancel: 'Cancel'
+      cancel: 'Cancel',
+      save: 'Save',
+      back: 'Back',
+      logout: 'Logout'
+    },
+    login: {
+      subtitle: 'Sign in to manage your groups and properties.',
+      email: 'Email',
+      password: 'Password',
+      submit: 'Login'
+    },
+    footer: {
+      title: 'About',
+      description:
+        'NamelessNote organizes text properties and sensitive values in a simple, editable, and responsive way.'
+    },
+    home: {
+      title: 'Home',
+      noSelectedGroup: 'No group selected'
+    },
+    config: {
+      title: 'Configuration',
+      language: 'Language',
+      apiUrl: 'API URL',
+      description: 'These values are stored in localStorage and override the values defined in .env.',
+      saved: 'Configuration saved.'
+    },
+    groups: {
+      title: 'Group Menu',
+      searchPlaceholder: 'Search group...',
+      newGroup: 'New Group',
+      collapse: 'Collapse',
+      expand: 'Expand'
+    },
+    properties: {
+      addColumn: 'Add new column',
+      propertyName: 'Property name',
+      propertyValue: 'Property value',
+      nameLabel: 'Name',
+      valueLabel: 'Value',
+      invalidName: 'Invalid name. Use A-Z, 0-9, spaces, -, _, [, ] (1..25).',
+      copy: 'Copy',
+      show: 'View',
+      hide: 'Hide',
+      showValue: 'Show value',
+      hideValue: 'Hide value',
+      richText: 'Rich text'
+    },
+    editor: {
+      promptUrl: 'URL',
+      bold: 'Bold',
+      italic: 'Italic',
+      underline: 'Underline',
+      bulletList: 'List',
+      numberedList: 'Numbered list',
+      link: 'Link'
     },
     modals: {
       deleteGroup: {
@@ -28,7 +83,62 @@ const strings = {
       yes: 'Si',
       no: 'No',
       ok: 'Aceptar',
-      cancel: 'Cancelar'
+      cancel: 'Cancelar',
+      save: 'Guardar',
+      back: 'Volver',
+      logout: 'Salir'
+    },
+    login: {
+      subtitle: 'Inicia sesion para administrar tus grupos y propiedades.',
+      email: 'Email',
+      password: 'Password',
+      submit: 'Login'
+    },
+    footer: {
+      title: 'Acerca de',
+      description:
+        'NamelessNote organiza propiedades de texto y valores sensibles de forma simple, editable y responsiva.'
+    },
+    home: {
+      title: 'Inicio',
+      noSelectedGroup: 'Sin grupo seleccionado'
+    },
+    config: {
+      title: 'Configuracion',
+      language: 'Idioma',
+      apiUrl: 'API URL',
+      description: 'Estos valores se guardan en localStorage y sobreescriben los definidos en .env.',
+      saved: 'Configuracion guardada.'
+    },
+    groups: {
+      title: 'Menu Group',
+      searchPlaceholder: 'Buscar grupo...',
+      newGroup: 'Nuevo Grupo',
+      collapse: 'Colapsar',
+      expand: 'Expandir'
+    },
+    properties: {
+      addColumn: 'Agregar nueva columna',
+      propertyName: 'Nombre de propiedad',
+      propertyValue: 'Valor de propiedad',
+      nameLabel: 'Nombre',
+      valueLabel: 'Valor',
+      invalidName: 'Nombre invalido. Usa A-Z, 0-9, espacios, -, _, [, ] (1..25).',
+      copy: 'Copiar',
+      show: 'Ver',
+      hide: 'Ocultar',
+      showValue: 'Mostrar valor',
+      hideValue: 'Ocultar valor',
+      richText: 'Texto enriquecido'
+    },
+    editor: {
+      promptUrl: 'URL',
+      bold: 'Negrita',
+      italic: 'Cursiva',
+      underline: 'Subrayado',
+      bulletList: 'Lista',
+      numberedList: 'Lista numerada',
+      link: 'Link'
     },
     modals: {
       deleteGroup: {
