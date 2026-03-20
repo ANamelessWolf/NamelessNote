@@ -16,6 +16,9 @@ const strings = {
       submit: 'Login'
     },
     footer: {
+      name: 'ANamelessWolf',
+      email: 'contact_email@gmail.com',
+      credit: '© Nameless dev',
       title: 'About',
       description:
         'NamelessNote organizes text properties and sensitive values in a simple, editable, and responsive way.'
@@ -95,6 +98,9 @@ const strings = {
       submit: 'Login'
     },
     footer: {
+      name: 'ANamelessWolf',
+      email: 'contact_email@gmail.com',
+      credit: '© Nameless dev',
       title: 'Acerca de',
       description:
         'NamelessNote organiza propiedades de texto y valores sensibles de forma simple, editable y responsiva.'
