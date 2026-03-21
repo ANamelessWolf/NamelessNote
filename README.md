@@ -2,6 +2,9 @@
 
 NamelessNote is a Docker-friendly notes application for storing group-based properties with Google Sign-In, per-user data isolation, and backend-only encryption for sensitive values.
 
+<img width="1181" height="768" alt="imagen" src="https://github.com/user-attachments/assets/3c577127-e2ab-42b8-98ac-ef389a6b4fd2" />
+
+
 ## What The App Does
 
 - Authenticates users with Google OAuth in the frontend
