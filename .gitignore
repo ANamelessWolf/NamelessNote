@@ -141,3 +141,4 @@ backend/package-lock.json
 certs/*
 !certs/.gitkeep
 settings/cliendId.json
+backend/exports/*.xlsx

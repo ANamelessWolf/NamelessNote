@@ -1,33 +1,51 @@
 import { NextFunction, Request, Response } from "express";
 import { Types } from "mongoose";
-import { asyncErrorHandler } from "../middleware/error";
-import { Property } from "../models/Property";
-import { fromBase64, toBase64 } from "../utils/base64";
-import { sanitizeHtmlSafe, normalizePropName, PROP_NAME_REGEX } from "../utils/text";
+import { HTTP_STATUS } from "../config/constants";
 import { Exception } from "../config/exeption";
 import { HttpResponse } from "../config/http-response";
+import { asyncErrorHandler } from "../middleware/error";
+import { getAuthenticatedUser } from "../middleware/auth";
+import { Group } from "../models/Group";
+import { Property } from "../models/Property";
+import { decryptText, encryptText } from "../utils/crypto";
 import { mapResults } from "../utils/mapper";
-import { HTTP_STATUS } from "../config/constants";
+import { sanitizeHtmlSafe, normalizePropName, PROP_NAME_REGEX } from "../utils/text";
+
+async function requireOwnedGroup(groupId: string, ownerId: string) {
+  return Group.findOne({ _id: groupId, ownerId }).lean();
+}
 
 // GET /api/groups/:groupId/properties
 export const listPropertiesByGroup = asyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const user = getAuthenticatedUser(req);
       const { groupId } = req.params;
+
       if (!Types.ObjectId.isValid(groupId)) {
-        return next(new Exception("groupId inválido", HTTP_STATUS.BAD_REQUEST, null));
+        return next(new Exception("groupId invÃ¡lido", HTTP_STATUS.BAD_REQUEST, null));
       }
 
-      const docs = await Property.find({ groupId })
+      const group = await requireOwnedGroup(groupId, user.sub);
+      if (!group) {
+        return next(new Exception("Grupo no encontrado", HTTP_STATUS.NOT_FOUND, null));
+      }
+
+      const docs = await Property.find({ groupId, ownerId: user.sub })
         .sort({ propertyNameLower: 1 })
         .lean();
 
-      const items = docs.map((d) => {
-        const html = fromBase64(d.propertyValueBase64);
+      const items = docs.map((doc) => {
+        const html = decryptText({
+          propertyValueEncrypted: doc.propertyValueEncrypted,
+          iv: doc.iv,
+          authTag: doc.authTag,
+        });
         const safeHtml = sanitizeHtmlSafe(html);
-        const text = html.replace(/<[^>]+>/g, '').trim();
+        const text = html.replace(/<[^>]+>/g, "").trim();
+
         return {
-          propertyName: d.propertyNameOriginal,
+          propertyName: doc.propertyNameOriginal,
           valueHtml: safeHtml,
           valueText: text,
         };
@@ -57,11 +75,12 @@ export const listPropertiesByGroup = asyncErrorHandler(
 export const upsertProperty = asyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const user = getAuthenticatedUser(req);
       const { groupId } = req.params;
       const { propertyName, valueHtml } = req.body || {};
 
       if (!Types.ObjectId.isValid(groupId)) {
-        return next(new Exception("groupId inválido", HTTP_STATUS.BAD_REQUEST, null));
+        return next(new Exception("groupId invÃ¡lido", HTTP_STATUS.BAD_REQUEST, null));
       }
       if (!PROP_NAME_REGEX.test(propertyName || "")) {
         return next(
@@ -75,23 +94,33 @@ export const upsertProperty = asyncErrorHandler(
       if (typeof valueHtml !== "string" || valueHtml.length > 2000) {
         return next(
           new Exception(
-            "valueHtml inválido o excede 2000",
+            "valueHtml invÃ¡lido o excede 2000",
             HTTP_STATUS.BAD_REQUEST,
             null
           )
         );
       }
 
+      const group = await requireOwnedGroup(groupId, user.sub);
+      if (!group) {
+        return next(new Exception("Grupo no encontrado", HTTP_STATUS.NOT_FOUND, null));
+      }
+
       const lower = normalizePropName(propertyName);
-      const b64 = toBase64(valueHtml);
+      const encryptedValue = encryptText(valueHtml);
 
       await Property.findOneAndUpdate(
-        { groupId, propertyNameLower: lower },
+        { groupId, ownerId: user.sub, propertyNameLower: lower },
         {
           $set: {
+            ownerId: user.sub,
+            ownerEmail: user.email,
+            authProvider: "google",
             propertyNameOriginal: propertyName,
             propertyNameLower: lower,
-            propertyValueBase64: b64,
+            propertyValueEncrypted: encryptedValue.propertyValueEncrypted,
+            iv: encryptedValue.iv,
+            authTag: encryptedValue.authTag,
           },
         },
         { upsert: true, new: true }
@@ -121,12 +150,20 @@ export const upsertProperty = asyncErrorHandler(
 export const deleteProperty = asyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const user = getAuthenticatedUser(req);
       const { groupId, propertyName } = req.params;
+
       if (!Types.ObjectId.isValid(groupId)) {
-        return next(new Exception("groupId inválido", HTTP_STATUS.BAD_REQUEST, null));
+        return next(new Exception("groupId invÃ¡lido", HTTP_STATUS.BAD_REQUEST, null));
       }
+
+      const group = await requireOwnedGroup(groupId, user.sub);
+      if (!group) {
+        return next(new Exception("Grupo no encontrado", HTTP_STATUS.NOT_FOUND, null));
+      }
+
       const lower = normalizePropName(String(propertyName || ""));
-      await Property.deleteOne({ groupId, propertyNameLower: lower });
+      await Property.deleteOne({ groupId, ownerId: user.sub, propertyNameLower: lower });
 
       const result = await mapResults({ ok: true });
       res.status(HTTP_STATUS.OK).json(
@@ -147,4 +184,3 @@ export const deleteProperty = asyncErrorHandler(
     }
   }
 );
-

@@ -18,8 +18,8 @@ export default function LoginView({ language, onLogin }) {
       return
     }
 
-      const payload = JSON.parse(atob(credential.split('.')[1]))
-      console.log('Google JWT payload:', payload)
+      // const payload = JSON.parse(atob(credential.split('.')[1]))
+      // console.log('Google JWT payload:', payload)
 
     try {
       setIsSubmitting(true)

@@ -303,11 +303,117 @@ The backend config now reads:
 - `GOOGLE_CLIENT_ID`
 - `JWT_SECRET`
 - `JWT_EXPIRES_IN`
+- `DATA_ENCRYPTION_KEY`
+- `DATA_ENCRYPTION_ALGORITHM`
 
 Files:
 
 - [backend/src/config/index.ts](/z:/dev/node/NamelessNote/backend/src/config/index.ts)
 - [backend/.env.example](/z:/dev/node/NamelessNote/backend/.env.example)
+
+### 6. Added ownership metadata to groups and properties
+
+Both collections now persist the authenticated account identity so records can be filtered by the user who signed in.
+
+Group fields:
+
+- `ownerId = payload.sub`
+- `ownerEmail = payload.email`
+- `authProvider = "google"`
+
+Property fields:
+
+- `ownerId = payload.sub`
+- `ownerEmail = payload.email`
+- `authProvider = "google"`
+
+Files:
+
+- [backend/src/models/Group.ts](/z:/dev/node/NamelessNote/backend/src/models/Group.ts)
+- [backend/src/models/Property.ts](/z:/dev/node/NamelessNote/backend/src/models/Property.ts)
+
+Example group document shape:
+
+```json
+{
+  "_id": "ObjectId(...)",
+  "groupName": "Personal",
+  "ownerId": "google-sub-value",
+  "ownerEmail": "user@example.com",
+  "authProvider": "google"
+}
+```
+
+### 7. Added backend-only AES-256-GCM encryption for property values
+
+The frontend continues to send `valueHtml` in clear text over HTTPS, but the backend now encrypts that content before saving it to MongoDB. When reading, the backend decrypts the value and returns `valueHtml` back to the authorized user.
+
+File:
+
+- [backend/src/utils/crypto.ts](/z:/dev/node/NamelessNote/backend/src/utils/crypto.ts)
+
+Stored encrypted shape:
+
+```json
+{
+  "propertyValueEncrypted": "base64-ciphertext",
+  "iv": "base64-iv",
+  "authTag": "base64-auth-tag"
+}
+```
+
+Encryption example:
+
+```ts
+const encryptedValue = encryptText(valueHtml)
+
+await Property.findOneAndUpdate(
+  { groupId, ownerId: user.sub, propertyNameLower: lower },
+  {
+    $set: {
+      propertyValueEncrypted: encryptedValue.propertyValueEncrypted,
+      iv: encryptedValue.iv,
+      authTag: encryptedValue.authTag
+    }
+  },
+  { upsert: true, new: true }
+)
+```
+
+Decryption example:
+
+```ts
+const html = decryptText({
+  propertyValueEncrypted: doc.propertyValueEncrypted,
+  iv: doc.iv,
+  authTag: doc.authTag
+})
+```
+
+### 8. Filtered groups and properties by authenticated owner
+
+The backend now uses the JWT payload to restrict data access by `ownerId`.
+
+Files:
+
+- [backend/src/controllers/groupsController.ts](/z:/dev/node/NamelessNote/backend/src/controllers/groupsController.ts)
+- [backend/src/controllers/propertiesController.ts](/z:/dev/node/NamelessNote/backend/src/controllers/propertiesController.ts)
+
+Examples:
+
+```ts
+const query = search
+  ? { ownerId: user.sub, groupName: { $regex: search, $options: "i" } }
+  : { ownerId: user.sub }
+```
+
+and:
+
+```ts
+const docs = await Property.find({ groupId, ownerId: user.sub })
+  .sort({ propertyNameLower: 1 })
+  .lean()
+```
 
 ---
 
@@ -335,6 +441,8 @@ The backend needed:
 GOOGLE_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID
 JWT_SECRET=YOUR_LONG_RANDOM_SECRET
 JWT_EXPIRES_IN=8h
+DATA_ENCRYPTION_KEY=YOUR_32_BYTE_KEY_IN_BASE64_OR_HEX
+DATA_ENCRYPTION_ALGORITHM=aes-256-gcm
 ```
 
 Files:
@@ -647,3 +755,140 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml down -v
 ```
 
 Use the last command only when deleting the local MongoDB data is intentional.
+
+---
+
+## Excel Dump and Restore Scripts
+
+Two backend scripts were added to export and restore data using Excel workbooks.
+
+Files:
+
+- [backend/src/scripts/db_dump_data.ts](/z:/dev/node/NamelessNote/backend/src/scripts/db_dump_data.ts)
+- [backend/src/scripts/db_restore.ts](/z:/dev/node/NamelessNote/backend/src/scripts/db_restore.ts)
+
+NPM commands:
+
+```powershell
+npm run db_dump_data
+npm run db_restore -- ./exports/your-file.xlsx
+```
+
+### `db_dump_data`
+
+This script:
+
+1. Connects to MongoDB
+2. Reads all groups and properties
+3. Decrypts each property value in the backend
+4. Writes an `.xlsx` workbook with two sheets:
+   - `Groups`
+   - `Properties`
+
+Important:
+
+- The workbook stores `valueHtml` in clear text
+- This is intentional for portability and human-readable backups
+- The file should be handled as sensitive data
+
+Example usage:
+
+```powershell
+cd backend
+npm run db_dump_data
+```
+
+Or with a custom output path:
+
+```powershell
+npm run db_dump_data -- ./exports/my-backup.xlsx
+```
+
+### `db_restore`
+
+This script:
+
+1. Reads the workbook
+2. Recreates groups and properties in MongoDB
+3. Preserves identity metadata such as:
+   - `groupId`
+   - `propertyId`
+   - `ownerId`
+   - `ownerEmail`
+   - `authProvider`
+4. Re-encrypts `valueHtml` in the backend before persisting
+
+Example usage:
+
+```powershell
+cd backend
+npm run db_restore -- ./exports/my-backup.xlsx
+```
+
+### Workbook Structure
+
+The workbook contains two sheets.
+
+#### Sheet: `Groups`
+
+Columns:
+
+- `groupId`
+- `groupName`
+- `ownerId`
+- `ownerEmail`
+- `authProvider`
+- `createdAt`
+- `updatedAt`
+
+Example row:
+
+```json
+{
+  "groupId": "67df3ef0a2f84b5f1b8a1001",
+  "groupName": "Personal",
+  "ownerId": "google-sub-value",
+  "ownerEmail": "user@example.com",
+  "authProvider": "google",
+  "createdAt": "2026-03-21T21:00:00.000Z",
+  "updatedAt": "2026-03-21T21:05:00.000Z"
+}
+```
+
+#### Sheet: `Properties`
+
+Columns:
+
+- `propertyId`
+- `groupId`
+- `propertyName`
+- `propertyNameLower`
+- `valueHtml`
+- `ownerId`
+- `ownerEmail`
+- `authProvider`
+- `createdAt`
+- `updatedAt`
+
+Example row:
+
+```json
+{
+  "propertyId": "67df3ef0a2f84b5f1b8a2001",
+  "groupId": "67df3ef0a2f84b5f1b8a1001",
+  "propertyName": "Api Key",
+  "propertyNameLower": "api key",
+  "valueHtml": "<p>secret-value</p>",
+  "ownerId": "google-sub-value",
+  "ownerEmail": "user@example.com",
+  "authProvider": "google",
+  "createdAt": "2026-03-21T21:10:00.000Z",
+  "updatedAt": "2026-03-21T21:10:00.000Z"
+}
+```
+
+### Restore Notes
+
+- `db_restore` is designed for controlled restores, especially into an empty or known database
+- it preserves IDs and ownership information so account-scoped data remains tied to the same authenticated identity
+- property values are never stored back in plaintext in MongoDB; they are encrypted again during restore

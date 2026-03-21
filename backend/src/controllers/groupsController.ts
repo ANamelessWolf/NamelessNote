@@ -1,20 +1,23 @@
 import { NextFunction, Request, Response } from "express";
+import { Types } from "mongoose";
 import { asyncErrorHandler } from "../middleware/error";
 import { Group } from "../models/Group";
 import { Property } from "../models/Property";
 import { HTTP_STATUS } from "../config/constants";
 import { Exception } from "../config/exeption";
 import { HttpResponse } from "../config/http-response";
+import { getAuthenticatedUser } from "../middleware/auth";
 import { mapResults } from "../utils/mapper";
 
 // GET /api/groups?search=
 export const searchGroups = asyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const user = getAuthenticatedUser(req);
       const search = String(req.query.search || "");
       const query = search
-        ? { groupName: { $regex: search, $options: "i" } }
-        : {};
+        ? { ownerId: user.sub, groupName: { $regex: search, $options: "i" } }
+        : { ownerId: user.sub };
       const items = await Group.find(query).sort({ updatedAt: -1 }).lean();
 
       const result = await mapResults({ items });
@@ -37,6 +40,7 @@ export const searchGroups = asyncErrorHandler(
 export const createGroup = asyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const user = getAuthenticatedUser(req);
       const { groupName } = req.body || {};
       if (!groupName || typeof groupName !== "string" || groupName.length > 30) {
         return next(
@@ -44,7 +48,12 @@ export const createGroup = asyncErrorHandler(
         );
       }
 
-      const doc = await Group.create({ groupName });
+      const doc = await Group.create({
+        groupName,
+        ownerId: user.sub,
+        ownerEmail: user.email,
+        authProvider: "google",
+      });
       const result = await mapResults(doc);
       res.status(HTTP_STATUS.CREATED).json(
         new HttpResponse({
@@ -65,9 +74,13 @@ export const createGroup = asyncErrorHandler(
 export const deleteGroup = asyncErrorHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const user = getAuthenticatedUser(req);
       const { groupId } = req.params;
-      await Property.deleteMany({ groupId });
-      const deleted = await Group.findByIdAndDelete(groupId);
+      if (!Types.ObjectId.isValid(groupId)) {
+        return next(new Exception("groupId invÃ¡lido", HTTP_STATUS.BAD_REQUEST, null));
+      }
+      await Property.deleteMany({ groupId, ownerId: user.sub });
+      const deleted = await Group.findOneAndDelete({ _id: groupId, ownerId: user.sub });
       if (!deleted) {
         return next(
           new Exception("Grupo no encontrado", HTTP_STATUS.NOT_FOUND, null)
