@@ -14,6 +14,7 @@ import FooterInfo from "../common/FooterInfo";
 export default function HomeLayout({
   title,
   texts,
+  currentUser,
   sidebar,
   content,
   onLogout,
@@ -63,7 +64,7 @@ export default function HomeLayout({
           </Grid2>
         </Grid2>
       </Container>
-      <FooterInfo texts={texts.footer} />
+      <FooterInfo texts={texts.footer} currentUser={currentUser} />
     </Box>
   );
 }

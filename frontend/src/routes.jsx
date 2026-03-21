@@ -13,6 +13,7 @@ import { saveAppConfig, getAppConfig } from './utils/appConfig'
 import { setHttpBaseUrl } from './api/http'
 import {
   clearAccessToken,
+  getAuthenticatedUser,
   hasValidAccessToken,
   saveAccessToken,
   subscribeToAuthChanges
@@ -28,20 +29,30 @@ export default function AppRoutes() {
 
 function AppRouteViews() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => hasValidAccessToken())
+  const [currentUser, setCurrentUser] = useState(() => getAuthenticatedUser())
   const [config, setConfig] = useState(getAppConfig)
   const navigate = useNavigate()
 
-  useEffect(() => subscribeToAuthChanges(setIsAuthenticated), [])
+  useEffect(
+    () =>
+      subscribeToAuthChanges(() => {
+        setIsAuthenticated(hasValidAccessToken())
+        setCurrentUser(getAuthenticatedUser())
+      }),
+    []
+  )
 
   const authApi = useMemo(
     () => ({
       login: (token) => {
         saveAccessToken(token)
         setIsAuthenticated(true)
+        setCurrentUser(getAuthenticatedUser(token))
       },
       logout: () => {
         clearAccessToken()
         setIsAuthenticated(false)
+        setCurrentUser(null)
       }
     }),
     []
@@ -71,6 +82,7 @@ function AppRouteViews() {
           isAuthenticated ? (
             <HomeView
               config={config}
+              currentUser={currentUser}
               onLogout={authApi.logout}
               onOpenConfig={() => navigate('/config')}
             />

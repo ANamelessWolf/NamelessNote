@@ -29,7 +29,7 @@ const mapPropertyForGrid = (item) => ({
 
 const MAX_GROUP_NAME_EXCLUSIVE = 30
 
-export default function HomeView({ config, onLogout, onOpenConfig }) {
+export default function HomeView({ config, currentUser, onLogout, onOpenConfig }) {
   const dispatch = useDispatch()
   const [selectedGroupId, setSelectedGroupId] = useState(null)
   const [properties, setProperties] = useState([])
@@ -205,6 +205,7 @@ export default function HomeView({ config, onLogout, onOpenConfig }) {
       <HomeLayout
         title={texts.home.title}
         texts={texts}
+        currentUser={currentUser}
         onLogout={onLogout}
         onOpenConfig={onOpenConfig}
         sidebar={

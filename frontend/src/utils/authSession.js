@@ -31,6 +31,20 @@ export function hasValidAccessToken(token = readAccessToken()) {
   return payload.exp * 1000 > Date.now()
 }
 
+export function getAuthenticatedUser(token = readAccessToken()) {
+  if (!hasValidAccessToken(token)) return null
+
+  const payload = decodeAccessToken(token)
+  if (!payload?.sub || !payload?.email) return null
+
+  return {
+    sub: payload.sub,
+    email: payload.email,
+    name: payload.name || '',
+    picture: payload.picture || ''
+  }
+}
+
 function notifyAuthChange() {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new Event(AUTH_CHANGE_EVENT))

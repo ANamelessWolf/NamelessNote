@@ -1,7 +1,27 @@
-import { Avatar, Box, Chip, Container, Stack, Typography } from '@mui/material'
+import { Avatar, Box, Container, Link, Stack, Typography } from '@mui/material'
+import { useEffect, useMemo, useState } from 'react'
 import profileImage from '../../assets/img/profile.jpg'
 
-export default function FooterInfo({ texts }) {
+export default function FooterInfo({ texts, currentUser }) {
+  const displayName = currentUser?.name || texts.name
+  const displayEmail = currentUser?.email || texts.email
+  const [imageFailed, setImageFailed] = useState(false)
+
+  useEffect(() => {
+    setImageFailed(false)
+  }, [currentUser?.picture])
+
+  const displayAvatar = !imageFailed && currentUser?.picture ? currentUser.picture : profileImage
+  const initials = useMemo(() => {
+    const parts = String(displayName || '')
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+
+    return parts.map((part) => part[0]?.toUpperCase() || '').join('') || '?'
+  }, [displayName])
+
   return (
     <Box
       component="footer"
@@ -20,21 +40,34 @@ export default function FooterInfo({ texts }) {
         >
           <Box sx={{ minWidth: { sm: 92 } }}>
             <Avatar
-              src={profileImage}
-              alt={texts.name}
+              src={displayAvatar}
+              alt={displayName}
+              imgProps={{
+                referrerPolicy: 'no-referrer',
+                onError: () => setImageFailed(true)
+              }}
               sx={{ width: 82, height: 82, mb: 0.75, border: '2px solid rgba(255,255,255,0.18)' }}
-            />
-            <Typography variant="caption" sx={{ color: 'black' }}>
+            >
+              {initials}
+            </Avatar>
+            <Link
+              href={texts.url}
+              target="_blank"
+              rel="noreferrer"
+              underline="hover"
+              variant="caption"
+              sx={{ color: 'blue' }}
+            >
               {texts.credit}
-            </Typography>
+            </Link>
           </Box>
 
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography variant="h6" fontWeight={700} sx={{ lineHeight: 1.1 }}>
-              {texts.name}
+              {displayName}
             </Typography>
             <Typography variant="body2" sx={{ color: 'black', mb: 1.25 }}>
-              {texts.email}
+              {displayEmail}
             </Typography>
 
             <Box
