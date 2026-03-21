@@ -1,0 +1,8 @@
+type: object
+required:
+  - credential
+properties:
+  credential:
+    type: string
+    description: Google ID token returned by Google Sign-In as `response.credential`
+    example: "eyJhbGciOiJSUzI1NiIsImtpZCI6Ij..."

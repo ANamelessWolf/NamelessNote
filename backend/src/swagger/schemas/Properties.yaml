@@ -15,10 +15,28 @@ properties:
     type: string
     description: "Lowercased property name (for case-insensitive uniqueness)"
     example: "dbpassword"
-  propertyValueBase64:
+  ownerId:
     type: string
-    description: "HTML content encoded as Base64"
-    example: "PHA+c2VjcmV0PC9wPg=="
+    example: "109876543210987654321"
+  ownerEmail:
+    type: string
+    format: email
+    example: "user@example.com"
+  authProvider:
+    type: string
+    example: "google"
+  propertyValueEncrypted:
+    type: string
+    description: "AES-256-GCM encrypted property HTML stored as base64 ciphertext"
+    example: "2K0V09fQ0Q8Wt8lM1P3L7A=="
+  iv:
+    type: string
+    description: "Base64-encoded initialization vector used during encryption"
+    example: "5dBfLwYQ2h4t2Y2M"
+  authTag:
+    type: string
+    description: "Base64-encoded GCM authentication tag"
+    example: "bSmRzv0A7fF39I7UP2V6WQ=="
   createdAt:
     type: string
     format: date-time

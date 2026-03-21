@@ -5,9 +5,9 @@ properties:
     example: "DBPassword"
   valueHtml:
     type: string
-    description: "Sanitized HTML"
+    description: "Sanitized HTML decrypted in the backend for the authorized user"
     example: "<b>secret</b>"
   valueText:
     type: string
-    description: "Plain text version"
+    description: "Plain text version derived from decrypted HTML"
     example: "secret"

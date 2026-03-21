@@ -12,6 +12,6 @@ properties:
     pattern: "^[A-Za-z0-9\\s_\\-\\[\\]]{1,25}$"
   valueHtml:
     type: string
-    description: "Rich text HTML (<= 2000 chars). Backend stores as Base64."
+    description: "Rich text HTML (<= 2000 chars). Backend encrypts it with AES-256-GCM before storing."
     example: "<p>secret</p>"
     maxLength: 2000

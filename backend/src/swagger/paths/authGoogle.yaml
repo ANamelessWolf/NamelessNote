@@ -1,0 +1,21 @@
+post:
+  tags: [Auth]
+  summary: Authenticate with Google and issue an app JWT
+  security: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../schemas/requests/GoogleLoginRequest.yaml'
+  responses:
+    '200':
+      description: Authenticated successfully
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/responses/GoogleLoginResponse.yaml'
+    '400':
+      $ref: '../schemas/responses/CommonError.yaml'
+    '500':
+      $ref: '../schemas/responses/CommonError.yaml'

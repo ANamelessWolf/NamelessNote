@@ -3,14 +3,16 @@ info:
   title: NamelessNote Backend API
   version: 1.0.0
   description: |
-    API for managing groups and properties (RichText stored as Base64).
+    API for managing groups and encrypted properties with Google Sign-In and JWT authorization.
     This spec is split into multiple YAML files via $ref.
 
 servers:
-  - url: http://localhost:4000
-    description: Local development
+  - url: /
+    description: Current origin (works for both HTTP and HTTPS)
 
 tags:
+  - name: Auth
+    description: Authentication endpoints
   - name: Groups
     description: Group management
   - name: Health
@@ -28,10 +30,12 @@ components:
     PropertyListItem:      { $ref: './schemas/responses/PropertyListItem.yaml' }
 
     # Requests
+    GoogleLoginRequest:   { $ref: './schemas/requests/GoogleLoginRequest.yaml' }
     CreateGroupRequest:    { $ref: './schemas/requests/CreateGroupRequest.yaml' }
     UpsertPropertyRequest: { $ref: './schemas/requests/UpsertPropertyRequest.yaml' }
 
     # Responses
+    GoogleLoginResponse:    { $ref: './schemas/responses/GoogleLoginResponse.yaml' }
     CreateGroupResponse:     { $ref: './schemas/responses/CreateGroupResponse.yaml' }
     DeleteGroupResponse:     { $ref: './schemas/responses/DeleteGroupResponse.yaml' }
     GroupListResponse:       { $ref: './schemas/responses/GroupListResponse.yaml' }
@@ -48,6 +52,8 @@ components:
 paths:
   /health:
     $ref: './paths/health.yaml'
+  /auth/google:
+    $ref: './paths/authGoogle.yaml'
   /api/groups:
     $ref: './paths/groups.yaml'
   /api/groups/{groupId}:

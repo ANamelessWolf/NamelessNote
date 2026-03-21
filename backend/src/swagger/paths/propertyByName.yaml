@@ -1,6 +1,8 @@
 delete:
   tags: [Properties]
-  summary: Delete a property by name (case-insensitive)
+  summary: Delete a property by name in an owned group
+  security:
+    - bearerAuth: []
   parameters:
     - in: path
       name: groupId
@@ -20,6 +22,10 @@ delete:
           schema:
             $ref: '../schemas/responses/DeleteGroupResponse.yaml'
     '400':
+      $ref: '../schemas/responses/CommonError.yaml'
+    '401':
+      $ref: '../schemas/responses/CommonError.yaml'
+    '404':
       $ref: '../schemas/responses/CommonError.yaml'
     '500':
       $ref: '../schemas/responses/CommonError.yaml'

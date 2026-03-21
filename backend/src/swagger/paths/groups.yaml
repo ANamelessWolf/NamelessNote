@@ -1,6 +1,8 @@
 get:
   tags: [Groups]
-  summary: Search groups by substring in groupName
+  summary: List the authenticated user's groups, optionally filtered by groupName substring
+  security:
+    - bearerAuth: []
   parameters:
     - in: query
       name: search
@@ -13,12 +15,16 @@ get:
         application/json:
           schema:
             $ref: '../schemas/responses/GroupListResponse.yaml'
+    '401':
+      $ref: '../schemas/responses/CommonError.yaml'
     '500':
       $ref: '../schemas/responses/CommonError.yaml'
 
 post:
   tags: [Groups]
-  summary: Create a new group (without properties)
+  summary: Create a new group for the authenticated user
+  security:
+    - bearerAuth: []
   requestBody:
     required: true
     content:
@@ -33,6 +39,8 @@ post:
           schema:
             $ref: '../schemas/responses/CreateGroupResponse.yaml'
     '400':
+      $ref: '../schemas/responses/CommonError.yaml'
+    '401':
       $ref: '../schemas/responses/CommonError.yaml'
     '500':
       $ref: '../schemas/responses/CommonError.yaml'

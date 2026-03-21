@@ -2,6 +2,8 @@ type: object
 properties:
   _id: { type: string, example: "66f0d3a85d2c3f1a4d0c1234" }
   groupName: { type: string, maxLength: 30, example: "Credentials" }
-  owner: { type: string, example: "user@example.com" }
+  ownerId: { type: string, example: "109876543210987654321" }
+  ownerEmail: { type: string, format: email, example: "user@example.com" }
+  authProvider: { type: string, example: "google" }
   createdAt: { type: string, format: date-time }
   updatedAt: { type: string, format: date-time }

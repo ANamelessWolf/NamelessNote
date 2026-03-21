@@ -1,6 +1,8 @@
 delete:
   tags: [Groups]
-  summary: Delete a group and all its properties
+  summary: Delete an owned group and all its owned properties
+  security:
+    - bearerAuth: []
   parameters:
     - in: path
       name: groupId
@@ -15,6 +17,8 @@ delete:
           schema:
             $ref: '../schemas/responses/DeleteGroupResponse.yaml'
     '404':
+      $ref: '../schemas/responses/CommonError.yaml'
+    '401':
       $ref: '../schemas/responses/CommonError.yaml'
     '500':
       $ref: '../schemas/responses/CommonError.yaml'

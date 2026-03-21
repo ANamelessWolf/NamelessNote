@@ -1,6 +1,8 @@
 get:
   tags: [Properties]
-  summary: List all properties in a group (sanitized HTML + plain text)
+  summary: List all properties in an owned group (backend decrypts before returning)
+  security:
+    - bearerAuth: []
   parameters:
     - in: path
       name: groupId
@@ -16,12 +18,18 @@ get:
             $ref: '../schemas/responses/PropertyListResponse.yaml'
     '400':
       $ref: '../schemas/responses/CommonError.yaml'
+    '401':
+      $ref: '../schemas/responses/CommonError.yaml'
+    '404':
+      $ref: '../schemas/responses/CommonError.yaml'
     '500':
       $ref: '../schemas/responses/CommonError.yaml'
 
 post:
   tags: [Properties]
-  summary: Create or update a property (upsert; backend stores Base64)
+  summary: Create or update a property in an owned group (backend encrypts before storing)
+  security:
+    - bearerAuth: []
   parameters:
     - in: path
       name: groupId
@@ -42,6 +50,10 @@ post:
           schema:
             $ref: '../schemas/responses/UpsertPropertyResponse.yaml'
     '400':
+      $ref: '../schemas/responses/CommonError.yaml'
+    '401':
+      $ref: '../schemas/responses/CommonError.yaml'
+    '404':
       $ref: '../schemas/responses/CommonError.yaml'
     '500':
       $ref: '../schemas/responses/CommonError.yaml'
