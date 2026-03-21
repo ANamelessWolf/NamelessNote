@@ -1,5 +1,6 @@
 import axios from "axios";
 import { getAppConfig } from '../utils/appConfig'
+import { clearAccessToken } from '../utils/authSession'
 
 const BASE_URL = getAppConfig().apiBaseUrl;
 
@@ -25,6 +26,9 @@ http.interceptors.response.use(
   (error) => {
     if (error.response) {
       const { status, data } = error.response;
+      if (status === 401) {
+        clearAccessToken();
+      }
       const message =
         data?.message ||
         data?.error ||

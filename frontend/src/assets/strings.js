@@ -11,9 +11,10 @@ const strings = {
     },
     login: {
       subtitle: 'Sign in to manage your groups and properties.',
-      email: 'Email',
-      password: 'Password',
-      submit: 'Login'
+      googleMissingCredential: 'Google did not return a credential. Please try again.',
+      googleSessionError: 'We could not start your session. Please try again.',
+      googleCancelled: 'Google sign-in was cancelled or failed.',
+      googleClientIdMissing: 'Missing VITE_GOOGLE_CLIENT_ID in the frontend environment.'
     },
     footer: {
       name: 'ANamelessWolf',
@@ -93,9 +94,10 @@ const strings = {
     },
     login: {
       subtitle: 'Inicia sesion para administrar tus grupos y propiedades.',
-      email: 'Email',
-      password: 'Password',
-      submit: 'Login'
+      googleMissingCredential: 'Google no devolvio una credencial. Intenta de nuevo.',
+      googleSessionError: 'No fue posible iniciar tu sesion. Intenta de nuevo.',
+      googleCancelled: 'El inicio de sesion con Google fue cancelado o fallo.',
+      googleClientIdMissing: 'Falta configurar VITE_GOOGLE_CLIENT_ID en el frontend.'
     },
     footer: {
       name: 'ANamelessWolf',
