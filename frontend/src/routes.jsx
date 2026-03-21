@@ -5,12 +5,18 @@ import {
   Routes,
   useNavigate
 } from 'react-router-dom'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import LoginView from './views/LoginView'
 import HomeView from './views/HomeView'
 import ConfigView from './views/ConfigView'
 import { saveAppConfig, getAppConfig } from './utils/appConfig'
 import { setHttpBaseUrl } from './api/http'
+import {
+  clearAccessToken,
+  hasValidAccessToken,
+  saveAccessToken,
+  subscribeToAuthChanges
+} from './utils/authSession'
 
 export default function AppRoutes() {
   return (
@@ -21,14 +27,22 @@ export default function AppRoutes() {
 }
 
 function AppRouteViews() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(() => hasValidAccessToken())
   const [config, setConfig] = useState(getAppConfig)
   const navigate = useNavigate()
 
+  useEffect(() => subscribeToAuthChanges(setIsAuthenticated), [])
+
   const authApi = useMemo(
     () => ({
-      login: () => setIsAuthenticated(true),
-      logout: () => setIsAuthenticated(false)
+      login: (token) => {
+        saveAccessToken(token)
+        setIsAuthenticated(true)
+      },
+      logout: () => {
+        clearAccessToken()
+        setIsAuthenticated(false)
+      }
     }),
     []
   )

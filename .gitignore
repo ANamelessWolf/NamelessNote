@@ -140,3 +140,4 @@ vite.config.ts.timestamp-*
 backend/package-lock.json
 certs/*
 !certs/.gitkeep
+settings/cliendId.json
