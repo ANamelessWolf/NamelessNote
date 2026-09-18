@@ -53,12 +53,28 @@ upload it anywhere, delete local copies once installed on your phone.
    fingerprint/face unlock or PIN/pattern/password via `local_auth` before
    any data is shown (`lib/screens/lock_screen.dart`).
 
-5. Home screen lists groups; tapping one expands its properties. The search
+5. **Access password (optional).** If `MOBILE_ACCESS_PASSWORD` is set in
+   `backend/.env`, after the fingerprint/PIN the app shows a prompt with one
+   input and one button (`lib/screens/password_screen.dart`). Someone who
+   enrolled their own fingerprint on your phone still needs this password.
+   - Correct: normal app.
+   - Wrong: no error message; the app opens as if it had no content
+     ("No hay grupos guardados."), the database is never opened and search is
+     disabled. There is no retry until the app process is closed and reopened
+     (sending it to the background and coming back is not enough).
+   - It is asked again on every unlock after the app goes to the background.
+   - Only a salted PBKDF2-SHA256 hash (50,000 iterations) is baked into the
+     APK, produced by `scripts/build-mobile-apk.js`; the password itself never
+     is. Leave the variable empty to disable the feature. After changing it,
+     rebuild the APK. It is a deterrent, not strong protection: the hash lives
+     in the APK (see the threat model below).
+
+6. Home screen lists groups; tapping one expands its properties. The search
    bar has two modes — **by group** (`groups.groupName`) and **by property**
    (`properties.propertyNameLower`) — and property search results are shown
    as a flat list of "group + property" rows, per spec.
 
-6. Each property row mirrors the web frontend's `PropertyRow.jsx`: the value
+7. Each property row mirrors the web frontend's `PropertyRow.jsx`: the value
    is masked by default, with a "show/hide" (eye) button and a "copy to
    clipboard" button.
 
@@ -83,6 +99,8 @@ lib/
   data/vault_passphrase.dart    # SQLCipher key, injected via --dart-define
   models/                       # VaultGroup, VaultProperty
   screens/lock_screen.dart      # biometric gate UI
+  screens/password_screen.dart  # optional access-password prompt
+  security/access_password.dart # PBKDF2 hash check (matches the build script)
   screens/home_screen.dart      # groups list + search
   widgets/property_tile.dart    # masked value + copy/show
 ```

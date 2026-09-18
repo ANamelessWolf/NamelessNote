@@ -85,14 +85,18 @@ Flutter Android app. Fully offline, no backend/network access, no
 1. Requires the device's fingerprint/face/PIN via `local_auth` on every
    launch and every resume from background before showing anything
    (`lib/screens/lock_screen.dart`).
-2. Copies the bundled, SQLCipher-encrypted `.sqlite` asset into the app's
+2. Optionally asks for an access password (one input, one button) after the
+   unlock. A wrong password shows the app as empty with search disabled,
+   until the process is closed and reopened. Configured with
+   `MOBILE_ACCESS_PASSWORD`; only a salted PBKDF2 hash is compiled in.
+3. Copies the bundled, SQLCipher-encrypted `.sqlite` asset into the app's
    private storage on first run and opens it with `sqflite_sqlcipher`
    (backed by `net.zetetic:sqlcipher-android`), passing the passphrase that
    was compiled in via `--dart-define=VAULT_PASSPHRASE=...`.
-3. Lists groups, expandable to their properties; a search bar toggles
+4. Lists groups, expandable to their properties; a search bar toggles
    between searching `groups.groupName` and `properties.propertyNameLower`,
    with property search results shown as a flat "group + property" list.
-4. Each property mirrors the web frontend's `PropertyRow.jsx`: value
+5. Each property mirrors the web frontend's `PropertyRow.jsx`: value
    masked by default, with show/hide and copy-to-clipboard buttons.
 
 See [mobile/README.md](../mobile/README.md) for the full build/customization
@@ -179,6 +183,7 @@ Practically:
 | `JWT_SECRET` / `JWT_EXPIRES_IN` | Signing secret and lifetime for the app's own JWT. |
 | `DATA_ENCRYPTION_KEY` / `DATA_ENCRYPTION_ALGORITHM` | AES-256-GCM key (32 bytes, base64 or hex) for property values at rest. |
 | `MOBILE_DB_ENCRYPTION_KEY` | SQLCipher passphrase for the mobile export — must match `VAULT_PASSPHRASE` used to build the mobile app. |
+| `MOBILE_ACCESS_PASSWORD` | Optional. Read only by `scripts/build-mobile-apk.js` (not by the API): turned into a salted hash and passed to the mobile build as `ACCESS_PASSWORD_SALT`/`ACCESS_PASSWORD_HASH`. Empty = feature off. |
 | `DEBUG` | Verbose logging toggle. |
 | `HTTPS_ENABLED` / `HTTPS_CERT_FILE` / `HTTPS_KEY_FILE` | Local HTTPS for dev. |
 

@@ -3,16 +3,19 @@ import 'package:flutter/material.dart';
 import '../auth/biometric_gate.dart';
 
 class LockScreen extends StatefulWidget {
-  const LockScreen({super.key, required this.onUnlocked});
+  const LockScreen({super.key, required this.onUnlocked, this.gate});
 
   final VoidCallback onUnlocked;
+
+  /// Override in tests; defaults to the real `local_auth` gate.
+  final BiometricGate? gate;
 
   @override
   State<LockScreen> createState() => _LockScreenState();
 }
 
 class _LockScreenState extends State<LockScreen> {
-  final _gate = BiometricGate();
+  late final BiometricGate _gate = widget.gate ?? BiometricGate();
   bool _authenticating = false;
   String? _error;
 

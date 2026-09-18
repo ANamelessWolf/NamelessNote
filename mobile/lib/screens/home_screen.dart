@@ -8,7 +8,11 @@ import '../widgets/property_tile.dart';
 enum SearchMode { group, property }
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, this.emptyMode = false});
+
+  /// Shown after a wrong access password: the app looks like it has no
+  /// content. The database is never opened and searching is disabled.
+  final bool emptyMode;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -29,7 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _load();
+    if (!widget.emptyMode) _load();
   }
 
   Future<void> _load() async {
@@ -118,6 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           TextField(
             controller: _searchController,
+            enabled: !widget.emptyMode,
             onChanged: (value) {
               setState(() {}); // refresh to switch between list/search views
               _onSearchChanged(value);
@@ -155,10 +160,12 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
             selected: {_mode},
-            onSelectionChanged: (selection) {
-              setState(() => _mode = selection.first);
-              _onSearchChanged(_searchController.text);
-            },
+            onSelectionChanged: widget.emptyMode
+                ? null
+                : (selection) {
+                    setState(() => _mode = selection.first);
+                    _onSearchChanged(_searchController.text);
+                  },
           ),
         ],
       ),
@@ -166,7 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildGroupsList() {
-    if (_db == null) {
+    if (_db == null && !widget.emptyMode) {
       return const Center(child: CircularProgressIndicator());
     }
     if (_groups.isEmpty) {

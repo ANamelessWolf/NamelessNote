@@ -9,6 +9,7 @@
 // Reads MOBILE_DB_ENCRYPTION_KEY from backend/.env so both steps always agree on the
 // same key without the developer having to copy/paste it by hand.
 
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
@@ -38,6 +39,28 @@ if (!key) {
   process.exit(1);
 }
 
+// Optional second factor asked by the app after the biometric/PIN unlock.
+// Only a salted PBKDF2 hash is passed to the app, never the password itself.
+// ITERATIONS must match `accessPasswordIterations` in
+// mobile/lib/security/access_password.dart.
+const ITERATIONS = 50000;
+const accessPassword = readEnvValue(
+  path.join(repoRoot, 'backend', '.env'),
+  'MOBILE_ACCESS_PASSWORD'
+);
+const accessPasswordDefines = [];
+if (accessPassword) {
+  const salt = crypto.randomBytes(16);
+  const hash = crypto.pbkdf2Sync(accessPassword, salt, ITERATIONS, 32, 'sha256');
+  accessPasswordDefines.push(
+    `--dart-define=ACCESS_PASSWORD_SALT=${salt.toString('hex')}`,
+    `--dart-define=ACCESS_PASSWORD_HASH=${hash.toString('hex')}`
+  );
+  console.log('Access password: enabled (MOBILE_ACCESS_PASSWORD found in backend/.env).');
+} else {
+  console.log('Access password: disabled (set MOBILE_ACCESS_PASSWORD in backend/.env to enable).');
+}
+
 function run(command, args, cwd) {
   console.log(`\n> ${command} ${args.join(' ')}  (cwd: ${cwd})`);
   const result = spawnSync(command, args, { cwd, stdio: 'inherit', shell: true });
@@ -54,7 +77,13 @@ if (!skipDump) {
 
 run(
   'flutter',
-  ['build', 'apk', '--release', `--dart-define=VAULT_PASSPHRASE=${key}`],
+  [
+    'build',
+    'apk',
+    '--release',
+    `--dart-define=VAULT_PASSPHRASE=${key}`,
+    ...accessPasswordDefines
+  ],
   path.join(repoRoot, 'mobile')
 );
 
