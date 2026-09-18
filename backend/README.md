@@ -12,6 +12,7 @@ The backend is an Express + TypeScript API responsible for authentication, autho
 - Decrypt property values before returning them to the authorized user
 - Export decrypted data to Excel
 - Restore Excel data and re-encrypt it before persistence
+- Export a decrypted-then-SQLCipher-re-encrypted SQLite snapshot for the mobile app
 
 ## Stack
 
@@ -22,6 +23,7 @@ The backend is an Express + TypeScript API responsible for authentication, autho
 - `google-auth-library`
 - `jsonwebtoken`
 - `xlsx`
+- `better-sqlite3-multiple-ciphers` (SQLCipher-capable SQLite driver, used only by `db_dump_sqlite`)
 
 ## Auth Model
 
@@ -151,11 +153,19 @@ PORT=4000
 NODE_ENV=development
 CORS_ORIGIN=http://localhost:3000,https://localhost:3000
 MONGO_URI=mongodb://nameless_note_db:27017/namelessnote
+# Optional: overrides MONGO_URI for db_dump_sqlite/db_dump_data when run from
+# the host (outside Docker), where the compose service hostname doesn't
+# resolve. Example: mongodb://localhost:27018/namelessnote
+MONGO_URI_DUMP=
 GOOGLE_CLIENT_ID=PUT_YOUR_GOOGLE_CLIENT_ID
 JWT_SECRET=CHANGE_ME_TO_A_LONG_RANDOM_SECRET
 JWT_EXPIRES_IN=8h
 DATA_ENCRYPTION_KEY=base64_or_hex_32_byte_key
 DATA_ENCRYPTION_ALGORITHM=aes-256-gcm
+# SQLCipher passphrase for the mobile app's bundled .sqlite export (generate
+# with `openssl rand -base64 32`). Must match `vaultPassphrase`/
+# VAULT_PASSPHRASE used to build mobile/.
+MOBILE_DB_ENCRYPTION_KEY=
 DEBUG=false
 HTTPS_ENABLED=false
 HTTPS_CERT_FILE=../certs/namelessnote-local.pem
@@ -193,56 +203,67 @@ cd backend
 npm run build
 ```
 
-## Database Dump And Restore
+## Database Dump, Restore And Mobile Export
 
-The backend includes two Excel-based scripts:
+Three scripts, all one-off CLI commands (not HTTP endpoints):
 
-- `npm run db_dump_data`
-- `npm run db_restore`
+- `npm run db_dump_data` — Excel export
+- `npm run db_restore` — Excel restore
+- `npm run db_dump_sqlite` — SQLCipher-encrypted SQLite export, for the mobile app
 
-### Dump
+All three connect to Mongo the same way: `MONGO_URI_DUMP` if set in `.env`,
+falling back to `MONGO_URI`. When run from the host (outside Docker), the
+Docker Compose service hostname (`nameless_note_db`) doesn't resolve, so set
+`MONGO_URI_DUMP=mongodb://localhost:27018/namelessnote` in `.env` once
+instead of exporting `$env:MONGO_URI` before every command.
 
-From the host:
+### Dump (Excel)
 
 ```powershell
-$env:MONGO_URI="mongodb://localhost:27018/namelessnote"
 npm run db_dump_data
+npm run db_dump_data -- ./exports/my-backup.xlsx   # custom output path
 ```
 
-This exports:
+Exports groups + properties into an `.xlsx` file with decrypted `valueHtml`.
 
-- groups
-- properties
-
-into an `.xlsx` file with decrypted `valueHtml`.
-
-### Restore
-
-From the host:
+### Restore (Excel)
 
 ```powershell
-$env:MONGO_URI="mongodb://localhost:27018/namelessnote"
 npm run db_restore -- ./exports/my-backup.xlsx
 ```
 
-Restore preserves:
+Restore preserves `groupId`, `propertyId`, `ownerId`, `ownerEmail`,
+`authProvider`, and re-encrypts `valueHtml` (AES-256-GCM, `DATA_ENCRYPTION_KEY`)
+before storing it.
 
-- `groupId`
-- `propertyId`
-- `ownerId`
-- `ownerEmail`
-- `authProvider`
+### Dump for mobile (SQLCipher SQLite)
 
-and re-encrypts `valueHtml` before storing it.
+```powershell
+npm run db_dump_sqlite -- ../mobile/assets/db/namelessnote.sqlite
+# or, with a shortcut that already points at that path:
+npm run db_dump_sqlite:mobile
+```
+
+Requires `MOBILE_DB_ENCRYPTION_KEY` set in `.env`. Decrypts every property
+with `DATA_ENCRYPTION_KEY` (same as the Excel export), writes `groups` /
+`properties` tables, then re-encrypts the **entire file** with SQLCipher
+(compatibility mode 4, matching `net.zetetic:sqlcipher-android` on the
+Flutter side) using `MOBILE_DB_ENCRYPTION_KEY`. See
+[db_dump_sqlite.ts](./src/scripts/db_dump_sqlite.ts) and
+[../mobile/README.md](../mobile/README.md). Prefer `npm run mobile:apk`
+from the repo root, which runs this and the Flutter build together and
+keeps the SQLCipher key in sync automatically.
 
 ## Important Notes
 
-- if you run scripts from the host, `nameless_note_db` will not resolve; use `mongodb://localhost:27018/namelessnote`
+- if you run scripts from the host, `nameless_note_db` will not resolve; set `MONGO_URI_DUMP=mongodb://localhost:27018/namelessnote` in `.env`
 - if you run scripts inside the Docker network, `mongodb://nameless_note_db:27017/namelessnote` works
-- exported Excel files contain decrypted property values, so they must be treated as sensitive backups
+- exported `.xlsx` and `.sqlite` files both contain decrypted property values, so they must be treated as sensitive backups (both are gitignored — never force-add a populated one)
 - the backend currently uses practical TypeScript workarounds for `jsonwebtoken` and `req.user` in development mode
 
 ## Related Documentation
 
 - [README.md](/z:/dev/node/NamelessNote/README.md)
+- [docs/architecture.md](/z:/dev/node/NamelessNote/docs/architecture.md)
+- [mobile/README.md](/z:/dev/node/NamelessNote/mobile/README.md)
 - [google-login-workaround.md](/z:/dev/node/NamelessNote/docs/google-login-workaround.md)

@@ -132,4 +132,10 @@ npm run build
 ## Related Documentation
 
 - [README.md](/z:/dev/node/NamelessNote/README.md)
+- [docs/architecture.md](/z:/dev/node/NamelessNote/docs/architecture.md)
 - [google-login-workaround.md](/z:/dev/node/NamelessNote/docs/google-login-workaround.md)
+
+The Android app in [mobile/](/z:/dev/node/NamelessNote/mobile) mirrors this
+app's property display pattern (masked value, show/hide, copy) — see
+[mobile/lib/widgets/property_tile.dart](/z:/dev/node/NamelessNote/mobile/lib/widgets/property_tile.dart)
+vs. [src/components/properties/PropertyRow.jsx](/z:/dev/node/NamelessNote/frontend/src/components/properties/PropertyRow.jsx).

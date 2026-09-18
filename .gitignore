@@ -142,3 +142,8 @@ certs/*
 !certs/.gitkeep
 settings/cliendId.json
 backend/exports/*.xlsx
+backend/exports/*.sqlite*
+
+# Generated/decrypted SQLite export bundled into the mobile app; never commit
+# real decrypted data. Regenerate locally via `npm run db_dump_sqlite`.
+mobile/assets/db/namelessnote.sqlite

@@ -9,11 +9,14 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
+      - NODE_OPTIONS=--dns-result-order=ipv4first
       - MONGO_URI=mongodb://nameless_note_db:27017/namelessnote
       - CORS_ORIGIN=http://localhost:3000,https://localhost:3000
       - HTTPS_ENABLED=true
       - HTTPS_CERT_FILE=../certs/namelessnote-local.pem
       - HTTPS_KEY_FILE=../certs/namelessnote-local-key.pem
+    ports:
+      - "4000:4000"
 
   nameless_note_front:
     image: node:20-alpine
@@ -28,7 +31,7 @@ services:
     environment:
       - NODE_ENV=development
       - VITE_API_BASE_URL=https://localhost:4000
-      - VITE_GOOGLE_CLIENT_ID=PASTE_YOUR_GOOGLE_CLIENT_ID_HERE
+      - VITE_GOOGLE_CLIENT_ID=365284291486-69ho133fiq0jt4oqn5im6kpp6n9rt449.apps.googleusercontent.com
       - DEV_HTTPS=true
       - DEV_HTTPS_CERT_FILE=../certs/namelessnote-local.pem
       - DEV_HTTPS_KEY_FILE=../certs/namelessnote-local-key.pem

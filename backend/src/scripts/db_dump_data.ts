@@ -22,7 +22,7 @@ async function main() {
   const outputPath = getOutputPath();
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
-  await connectMongo();
+  await connectMongo(process.env.MONGO_URI_DUMP || process.env.MONGO_URI);
 
   const [groups, properties] = await Promise.all([
     Group.find().sort({ ownerEmail: 1, groupName: 1 }).lean(),

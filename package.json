@@ -8,6 +8,9 @@
     "down:dev": "docker compose -f docker-compose.yml -f docker-compose.dev.yml down",
     "prod": "docker compose up --build",
     "prod:detached": "docker compose up -d --build",
-    "down:prod": "docker compose down"
+    "down:prod": "docker compose down",
+    "mobile:dump": "npm --prefix backend run db_dump_sqlite:mobile",
+    "mobile:apk": "node scripts/build-mobile-apk.js",
+    "mobile:apk:skip-dump": "node scripts/build-mobile-apk.js --skip-dump"
   }
 }

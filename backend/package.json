@@ -8,10 +8,13 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "db_dump_data": "ts-node src/scripts/db_dump_data.ts",
+    "db_dump_sqlite": "ts-node src/scripts/db_dump_sqlite.ts",
+    "db_dump_sqlite:mobile": "ts-node src/scripts/db_dump_sqlite.ts ../mobile/assets/db/namelessnote.sqlite",
     "db_restore": "ts-node src/scripts/db_restore.ts"
   },
   "dependencies": {
     "@apidevtools/swagger-parser": "^12.0.0",
+    "better-sqlite3-multiple-ciphers": "^13.0.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
