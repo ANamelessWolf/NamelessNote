@@ -64,16 +64,15 @@ upload it anywhere, delete local copies once installed on your phone.
 
 ### Threat model — what this protects against, and what it doesn't
 
-SQLCipher stops "copy the `.sqlite` out of the APK and open it in any
-DB browser" — the realistic risk for a lost phone, a cloud backup of the
-APK, or a carelessly shared file. It does **not** make the app unbreakable
-against someone who fully reverse-engineers the compiled binary: since the
-app must decrypt data completely offline with no server to gatekeep the
-key, the passphrase has to live in the compiled app somewhere. Building
-with `--obfuscate --split-debug-info=<dir>` (not currently wired into
-`npm run mobile:apk` — add it if you want this) raises that bar further.
-The real encryption-at-rest lives in the backend's MongoDB
-(`DATA_ENCRYPTION_KEY`), which never touches the device at all.
+SQLCipher stops "copy the `.sqlite` out of the APK and open it in a generic
+DB browser". It does **not** protect against anyone who also unzips the APK:
+the passphrase is compiled into `libapp.so` as a plain string (verified with
+a byte search on the release build; `--obfuscate` renames identifiers but does
+not hide string literals). Treat the APK itself as sensitive. The robust fix
+(user-typed master passphrase + Keystore) is described in
+[../docs/security-review.md](../docs/security-review.md). The real
+encryption-at-rest lives in MongoDB (`DATA_ENCRYPTION_KEY`), which never
+touches the device.
 
 ## Project layout
 

@@ -145,7 +145,7 @@ spells out exactly what each one protects and which key it uses.
 | Key | `DATA_ENCRYPTION_KEY` (backend `.env`) | `MOBILE_DB_ENCRYPTION_KEY` (backend `.env`) / `VAULT_PASSPHRASE` (mobile `--dart-define`) — **must be the same value** |
 | Key ever reaches the device? | No — backend-only | Yes — it's compiled into the APK, because the app must decrypt fully offline |
 | What it defends against | Anyone with raw MongoDB access (backup theft, DB compromise) reading property values | Someone extracting `assets/db/namelessnote.sqlite` from the APK (it's just a zip) and opening it in a generic SQLite viewer |
-| What it does *not* defend against | A compromised backend process (it has the key in memory to serve requests) | Someone who fully reverse-engineers the compiled app binary to recover the compiled-in key |
+| What it does *not* defend against | A compromised backend process (it has the key in memory to serve requests) | Anyone who unzips the APK: the key sits as a plain string in `lib/<abi>/libapp.so` (verified). See [security-review.md](./security-review.md) |
 
 Practically:
 

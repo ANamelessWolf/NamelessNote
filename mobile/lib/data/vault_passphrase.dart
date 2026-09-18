@@ -18,19 +18,17 @@ const String vaultPassphrase = String.fromEnvironment(
 
 /// IMPORTANT — realistic threat model, read before relying on this:
 ///
-/// This gives you "a file extracted from the APK is useless without the
-/// app" protection, not "unbreakable" protection. A release build compiles
-/// Dart to native machine code (AOT), so this constant isn't a plain
-/// grep-able string the way it would be in a debug build; building with
-/// `flutter build apk --obfuscate --split-debug-info=<dir>` (see
-/// mobile/README.md) strips symbol names too, raising the bar further. But
-/// anyone willing to fully reverse-engineer the compiled binary can still
-/// recover it — there is no way around that for an app that must decrypt
-/// data completely offline, with no server to gatekeep the key.
+/// VERIFIED: the passphrase ends up as a plain string inside
+/// `lib/<abi>/libapp.so` in the release APK (a simple byte search finds it),
+/// and `--obfuscate` only renames identifiers — it does NOT hide string
+/// literals. So anyone who unzips the APK can recover the key and open the
+/// bundled .sqlite. This layer only stops "open the extracted .sqlite in a
+/// generic SQLite viewer" without any effort; it is not a real secret.
 ///
-/// This stops "open the extracted .sqlite file in any SQLite viewer",
-/// which is the realistic risk for a lost phone, a cloud backup, or a
-/// carelessly shared file. It does not replace the backend's real
-/// encryption-at-rest — the properties are encrypted at rest in MongoDB
-/// with a key that never leaves the server, and the device never has that
-/// key.
+/// Real fix: do not ship the key in the app. Derive the DB key from a
+/// master passphrase the user types on first launch (KDF) and keep it in
+/// Android Keystore-backed storage gated by biometrics. See
+/// docs/security-review.md.
+///
+/// The backend's encryption-at-rest (DATA_ENCRYPTION_KEY) is unaffected: that
+/// key never reaches the device.
