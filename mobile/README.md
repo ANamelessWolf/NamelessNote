@@ -44,11 +44,15 @@ upload it anywhere, delete local copies once installed on your phone.
    `--dart-define=VAULT_PASSPHRASE=<value of MOBILE_DB_ENCRYPTION_KEY>`
    yourself if you do this by hand.
 
-3. On every start the app refreshes its copy of the bundled file in the app's
-   private documents directory (assets are read-only, and installing a new APK
-   over an old one keeps the app's old files, so a one-time copy would keep
-   showing stale data) and opens it read-only with
-   `sqflite_sqlcipher` (a fork of `sqflite` backed by
+3. The app copies the bundled file into its private documents directory
+   (assets are read-only and sqflite can't open them in place) **once per
+   export**: next to the copy it keeps the SHA-256 of the asset it copied, and
+   on each start rewrites the file only if the APK's asset differs (or the copy
+   or its hash is missing). A plain "copy if missing" isn't enough: the local
+   copy survives app updates and can be restored after an uninstall by Android
+   Auto Backup, which kept showing a stale export. The copy goes through a temp
+   file + rename, so it can't be left half-written. Then it opens the file
+   read-only with `sqflite_sqlcipher` (a fork of `sqflite` backed by
    `net.zetetic:sqlcipher-android`), passing the same passphrase.
 
 4. Every launch (and every resume from background) requires the device's

@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart' show sha256;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -15,6 +17,40 @@ import 'vault_passphrase.dart';
 const _assetDbPath = 'assets/db/namelessnote.sqlite';
 const _dbFileName = 'namelessnote_vault.sqlite';
 
+/// Copies the bundled export to [dbPath] only when it is not already there.
+///
+/// sqflite cannot open a file straight from the read-only asset bundle, so the
+/// asset has to be copied to writable storage. That copy survives app updates
+/// and can even come back after an uninstall (Android Auto Backup), so
+/// "copy if missing" would keep serving an old export forever. Instead the
+/// SHA-256 of the copied asset is stored next to the database and the file is
+/// rewritten only when the bundled asset differs, i.e. once per new export.
+///
+/// Returns true if the database file was (re)written.
+Future<bool> syncBundledDatabase({
+  required Uint8List assetBytes,
+  required String dbPath,
+}) async {
+  final dbFile = File(dbPath);
+  final markerFile = File('$dbPath.sha256');
+  final digest = sha256.convert(assetBytes).toString();
+
+  if (dbFile.existsSync() &&
+      markerFile.existsSync() &&
+      (await markerFile.readAsString()).trim() == digest) {
+    return false;
+  }
+
+  // Write to a temp file and rename, so being killed mid-copy can't leave a
+  // truncated database behind. The marker goes last: if we die before it is
+  // written, the next start simply copies again.
+  final tmpFile = File('$dbPath.tmp');
+  await tmpFile.writeAsBytes(assetBytes, flush: true);
+  await tmpFile.rename(dbPath);
+  await markerFile.writeAsString(digest, flush: true);
+  return true;
+}
+
 class VaultDatabase {
   VaultDatabase._(this._db);
 
@@ -27,16 +63,10 @@ class VaultDatabase {
     final documentsDir = await getApplicationDocumentsDirectory();
     final dbPath = p.join(documentsDir.path, _dbFileName);
 
-    // Copy the bundled, backend-generated database into a writable location
-    // (sqflite cannot open a file directly from the read-only asset bundle).
-    // Refresh it on every start, not just the first: installing a new APK over
-    // an old one keeps the app's files, so a "copy only if missing" check would
-    // keep serving the previous export forever. The file is small and this
-    // runs once per process (the opened instance is cached below).
-    final bytes = await rootBundle.load(_assetDbPath);
-    await File(dbPath).writeAsBytes(
-      bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes),
-      flush: true,
+    final asset = await rootBundle.load(_assetDbPath);
+    await syncBundledDatabase(
+      assetBytes: asset.buffer.asUint8List(asset.offsetInBytes, asset.lengthInBytes),
+      dbPath: dbPath,
     );
 
     final db = await openDatabase(
