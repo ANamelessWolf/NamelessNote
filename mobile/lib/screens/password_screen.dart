@@ -61,7 +61,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
                     textInputAction: TextInputAction.done,
                     onSubmitted: (_) => _submit(),
                     decoration: const InputDecoration(
-                      labelText: 'Contraseña',
+                      labelText: 'Who are you?',
                       border: OutlineInputBorder(),
                     ),
                   ),

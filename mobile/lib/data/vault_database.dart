@@ -28,15 +28,16 @@ class VaultDatabase {
     final dbPath = p.join(documentsDir.path, _dbFileName);
 
     // Copy the bundled, backend-generated database into a writable location
-    // the very first time the app runs (sqflite cannot open a file directly
-    // from the read-only asset bundle).
-    if (!File(dbPath).existsSync()) {
-      final bytes = await rootBundle.load(_assetDbPath);
-      await File(dbPath).writeAsBytes(
-        bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes),
-        flush: true,
-      );
-    }
+    // (sqflite cannot open a file directly from the read-only asset bundle).
+    // Refresh it on every start, not just the first: installing a new APK over
+    // an old one keeps the app's files, so a "copy only if missing" check would
+    // keep serving the previous export forever. The file is small and this
+    // runs once per process (the opened instance is cached below).
+    final bytes = await rootBundle.load(_assetDbPath);
+    await File(dbPath).writeAsBytes(
+      bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes),
+      flush: true,
+    );
 
     final db = await openDatabase(
       dbPath,

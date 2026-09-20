@@ -44,8 +44,10 @@ upload it anywhere, delete local copies once installed on your phone.
    `--dart-define=VAULT_PASSPHRASE=<value of MOBILE_DB_ENCRYPTION_KEY>`
    yourself if you do this by hand.
 
-3. On first launch the app copies the bundled file into the app's private
-   documents directory (assets are read-only) and opens it read-only with
+3. On every start the app refreshes its copy of the bundled file in the app's
+   private documents directory (assets are read-only, and installing a new APK
+   over an old one keeps the app's old files, so a one-time copy would keep
+   showing stale data) and opens it read-only with
    `sqflite_sqlcipher` (a fork of `sqflite` backed by
    `net.zetetic:sqlcipher-android`), passing the same passphrase.
 
