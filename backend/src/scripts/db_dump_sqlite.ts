@@ -1,12 +1,25 @@
 import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
-import Database from 'better-sqlite3-multiple-ciphers';
 import { config } from '../config';
 import { connectMongo } from '../config/db';
 import { Group } from '../models/Group';
 import { Property } from '../models/Property';
 import { decryptText } from '../utils/crypto';
+
+// Loaded lazily and typed loosely on purpose: the package needs Node >= 22 (or a
+// native build toolchain), so it is an *optional* dependency. It installs on the
+// host, but not inside the node:20-alpine dev container — which must still boot.
+function loadSqliteDriver(): any {
+  try {
+    return require('better-sqlite3-multiple-ciphers');
+  } catch {
+    throw new Error(
+      "better-sqlite3-multiple-ciphers is not installed here. Run db_dump_sqlite on the host " +
+        "(Node >= 22, `npm install` in backend/), not inside the Docker container."
+    );
+  }
+}
 
 function requireMobileDbKey() {
   const key = config.mobileDbEncryptionKey.trim();
@@ -37,7 +50,7 @@ function toIso(value?: Date | string) {
   return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString();
 }
 
-function createSchema(db: Database.Database) {
+function createSchema(db: any) {
   db.exec(`
     CREATE TABLE groups (
       id TEXT PRIMARY KEY,
@@ -69,6 +82,10 @@ function createSchema(db: Database.Database) {
 }
 
 async function main() {
+  // Fail fast (before touching Mongo or the output file) if the export can't run here.
+  const mobileDbKey = requireMobileDbKey();
+  const Database = loadSqliteDriver();
+
   const outputPath = getOutputPath();
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   // The SQLite file is generated fresh on every run; remove any previous copy
@@ -85,7 +102,6 @@ async function main() {
     Property.find().sort({ ownerEmail: 1, propertyNameLower: 1 }).lean()
   ]);
 
-  const mobileDbKey = requireMobileDbKey();
   const db = new Database(outputPath);
 
   try {

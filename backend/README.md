@@ -23,7 +23,7 @@ The backend is an Express + TypeScript API responsible for authentication, autho
 - `google-auth-library`
 - `jsonwebtoken`
 - `xlsx`
-- `better-sqlite3-multiple-ciphers` (SQLCipher-capable SQLite driver, used only by `db_dump_sqlite`)
+- `better-sqlite3-multiple-ciphers` (optional; SQLCipher-capable SQLite driver, used only by `db_dump_sqlite`, host-only)
 
 ## Auth Model
 
@@ -243,6 +243,12 @@ npm run db_dump_sqlite -- ../mobile/assets/db/namelessnote.sqlite
 # or, with a shortcut that already points at that path:
 npm run db_dump_sqlite:mobile
 ```
+
+Run it **on the host** (Node >= 22), not inside the Docker container.
+`better-sqlite3-multiple-ciphers` is an *optional* dependency: it needs Node
+22+ or a native build toolchain, so it is skipped when the `node:20-alpine`
+dev container runs `npm install` (which keeps the API booting). If it's
+missing, the script stops with a message saying so.
 
 Requires `MOBILE_DB_ENCRYPTION_KEY` set in `.env`. Decrypts every property
 with `DATA_ENCRYPTION_KEY` (same as the Excel export), writes `groups` /
